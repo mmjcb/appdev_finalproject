@@ -22,9 +22,7 @@ class _RegisterState extends State<Register> {
   final _municipalityController = TextEditingController();
   final _cityProController = TextEditingController();
   final _dobController = TextEditingController();
-  String _selectedSex = 'Male';
-
-
+  String? _selectedSex; // No default selection
 
   @override
   Widget build(BuildContext context) {
@@ -42,30 +40,27 @@ class _RegisterState extends State<Register> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                  // Logo
-                  Padding(
-                    padding: const EdgeInsets.only(top: 30),
-                    child: Image.asset(
-                      'assets/SkipQ-Logo.png',
-                      height: 80,
-                    ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 30),
+                  child: Image.asset(
+                    'assets/SkipQ-Logo.png',
+                    height: 80,
                   ),
-
-                  const SizedBox(height: 8),
-                  Text(
-                    "Create Account",
-                    style: GoogleFonts.audiowide(
-                      fontSize: 26,
-                      fontWeight: FontWeight.normal,
-                      color: const Color(0xFF543063),
-                    ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  "Create Account",
+                  style: GoogleFonts.audiowide(
+                    fontSize: 26,
+                    fontWeight: FontWeight.normal,
+                    color: const Color(0xFF543063),
                   ),
+                ),
                 const SizedBox(height: 8),
                 const Text(
                   "Lorem ipsum dolor sit amet, \nconsectetur adipiscing elit.",
-                  style: TextStyle(
-                    color: Color.fromARGB(255, 0, 0, 0)),
-                    textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.black),
+                  textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 25),
 
@@ -84,13 +79,13 @@ class _RegisterState extends State<Register> {
                         'Personal Information',
                         style: GoogleFonts.audiowide(
                           fontSize: 18,
-                          color: Color(0xFF543063),
+                          color: const Color(0xFF543063),
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       const SizedBox(height: 10),
                       Padding(
-                        padding: const EdgeInsets.only(bottom: 10.0),
+                        padding: const EdgeInsets.only(bottom: 20.0),
                         child: Row(
                           children: [
                             Expanded(
@@ -122,7 +117,7 @@ class _RegisterState extends State<Register> {
                         ),
                       ),
                       Padding(
-                        padding: const EdgeInsets.only(bottom: 10.0),
+                        padding: const EdgeInsets.only(bottom: 20.0),
                         child: Row(
                           children: [
                             Expanded(
@@ -176,7 +171,6 @@ class _RegisterState extends State<Register> {
                                     firstDate: DateTime(1900),
                                     lastDate: DateTime.now(),
                                   );
-
                                   if (pickedDate != null) {
                                     setState(() {
                                       _dobController.text =
@@ -186,10 +180,7 @@ class _RegisterState extends State<Register> {
                                 },
                               ),
                             ),
-
                             const SizedBox(width: 10),
-
-                            // ⚧ DROPDOWN FIELD
                             Expanded(
                               flex: 2,
                               child: DropdownButtonFormField<String>(
@@ -201,13 +192,16 @@ class _RegisterState extends State<Register> {
                                 ),
                                 value: _selectedSex,
                                 items: const [
-                                  DropdownMenuItem(value: 'Male', child: Text('Male')),
-                                  DropdownMenuItem(value: 'Female', child: Text('Female')),
-                                  DropdownMenuItem(value: 'Other', child: Text('Other')),
+                                  DropdownMenuItem(
+                                      value: 'Male', child: Text('Male')),
+                                  DropdownMenuItem(
+                                      value: 'Female', child: Text('Female')),
+                                  DropdownMenuItem(
+                                      value: 'Other', child: Text('Other')),
                                 ],
                                 onChanged: (value) {
                                   setState(() {
-                                    _selectedSex = value!;
+                                    _selectedSex = value;
                                   });
                                 },
                               ),
@@ -215,18 +209,17 @@ class _RegisterState extends State<Register> {
                           ],
                         ),
                       ),
-
                       Text(
                         'Contact Information',
                         style: GoogleFonts.audiowide(
                           fontSize: 18,
-                          color: Color(0xFF543063),
+                          color: const Color(0xFF543063),
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       const SizedBox(height: 10),
                       Padding(
-                        padding: const EdgeInsets.only(bottom: 10.0),
+                        padding: const EdgeInsets.only(bottom: 20.0),
                         child: TextFormField(
                           controller: _emailController,
                           decoration: InputDecoration(
@@ -253,13 +246,13 @@ class _RegisterState extends State<Register> {
                         'Complete Address',
                         style: GoogleFonts.audiowide(
                           fontSize: 18,
-                          color: Color(0xFF543063),
+                          color: const Color(0xFF543063),
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       const SizedBox(height: 10),
                       Padding(
-                        padding: const EdgeInsets.only(bottom: 10.0),
+                        padding: const EdgeInsets.only(bottom: 20.0),
                         child: Row(
                           children: [
                             Expanded(
@@ -322,16 +315,15 @@ class _RegisterState extends State<Register> {
                           ],
                         ),
                       ),
-
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFFEABDE6),
-                            foregroundColor: Colors.black, 
+                            foregroundColor: Colors.black,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),
-                              side: const BorderSide( 
+                              side: const BorderSide(
                                 color: Color.fromARGB(128, 170, 96, 200),
                               ),
                             ),
@@ -346,7 +338,10 @@ class _RegisterState extends State<Register> {
                           },
                           child: const Text(
                             "Create Account",
-                            style: TextStyle(fontSize: 16, color: Color.fromARGB(255, 0, 0, 0), fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold),
                           ),
                         ),
                       ),
@@ -357,13 +352,13 @@ class _RegisterState extends State<Register> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text("Alredy have an account? "),
+                    const Text("Already have an account? "),
                     TextButton(
                       onPressed: () {
                         Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const Login()),
+                              builder: (context) => const Login()),
                         );
                       },
                       child: const Text(
