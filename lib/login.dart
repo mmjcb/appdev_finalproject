@@ -62,106 +62,112 @@ class _LoginState extends State<Login> {
 
                 const SizedBox(height: 25),
 
-                Container(
-                  width: 400,
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.9),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.purple.shade100),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(top: 10.0),
-                        child: TextFormField(
-                          controller: _emailController,
-                          decoration: InputDecoration(
-                            labelText: 'Email Address',
-                            prefixIcon: const Icon(Icons.email),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                        ),
-                      ),
-
-                      Padding(
-                        padding:
-                            const EdgeInsets.only(top: 20.0, bottom: 10.0),
-                        child: TextFormField(
-                          controller: _passwordController,
-                          decoration: InputDecoration(
-                            labelText: 'Password',
-                            prefixIcon: const Icon(Icons.lock),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                        ),
-                      ),
-
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            children: [
-                              Checkbox(
-                                value: rememberMe,
-                                onChanged: (value) {
-                                  setState(() => rememberMe = value ?? false);
-                                },
-                                activeColor: Colors.purple,
+                // Added horizontal padding here 
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: Container(
+                    width: 400,
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: const Color.fromARGB(255, 255, 255, 255).withOpacity(0.40),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: const Color.fromARGB(255, 0, 0, 0).withOpacity(0.50)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(top: 10.0),
+                          child: TextFormField(
+                            controller: _emailController,
+                            decoration: InputDecoration(
+                              labelText: 'Email Address',
+                              prefixIcon: const Icon(Icons.email),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
                               ),
-                              const Text("Remember Me"),
-                            ],
+                            ),
                           ),
-                          TextButton(
-                            onPressed: () {},
+                        ),
+
+                        Padding(
+                          padding:
+                              const EdgeInsets.only(top: 20.0, bottom: 10.0),
+                          child: TextFormField(
+                            controller: _passwordController,
+                            decoration: InputDecoration(
+                              labelText: 'Password',
+                              prefixIcon: const Icon(Icons.lock),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            obscureText: true,
+                          ),
+                        ),
+
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                Checkbox(
+                                  value: rememberMe,
+                                  onChanged: (value) {
+                                    setState(() => rememberMe = value ?? false);
+                                  },
+                                  activeColor: Colors.purple,
+                                ),
+                                const Text("Remember Me"),
+                              ],
+                            ),
+                            TextButton(
+                              onPressed: () {},
+                              child: const Text(
+                                "Forgot Password",
+                                style: TextStyle(color: Colors.purple),
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 10),
+
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFFEABDE6),
+                              foregroundColor: Colors.black,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                side: const BorderSide(
+                                  color: Color.fromARGB(128, 170, 96, 200),
+                                ),
+                              ),
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 14),
+                            ),
+                            onPressed: () {
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const HomePage(),
+                                ),
+                              );
+                            },
                             child: const Text(
-                              "Forgot Password",
-                              style: TextStyle(color: Colors.purple),
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 10),
-
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFEABDE6),
-                            foregroundColor: Colors.black,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              side: const BorderSide(
-                                color: Color.fromARGB(128, 170, 96, 200),
+                              "Log In",
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold,
                               ),
-                            ),
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                          ),
-                          onPressed: () {
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const HomePage(),
-                              ),
-                            );
-                          },
-                          child: const Text(
-                            "Log In",
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.black,
-                              fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
 
@@ -204,9 +210,9 @@ class _LoginState extends State<Login> {
                   width: 400,
                   child: Column(
                     children: [
-                      socialButton(Icons.g_mobiledata, "Sign in with Google"),
-                      socialButton(Icons.facebook, "Sign in with Facebook"),
-                      socialButton(Icons.apple, "Sign in with Apple"),
+                      socialButton('assets/google.png', "Sign in with Google"),
+                      socialButton('assets/facebook.png', "Sign in with Facebook"),
+                      socialButton('assets/apple.png', "Sign in with Apple"),
                     ],
                   ),
                 ),
@@ -218,14 +224,18 @@ class _LoginState extends State<Login> {
     );
   }
 
-  Widget socialButton(IconData icon, String text) {
+  Widget socialButton(String imagePath, String text) {
     return Padding(
       padding: const EdgeInsets.only(top: 10.0),
       child: SizedBox(
         width: double.infinity,
         child: OutlinedButton.icon(
           onPressed: () {},
-          icon: Icon(icon, color: Colors.black),
+          icon: Image.asset(
+            imagePath,
+            height: 24,
+            width: 24,
+          ),
           label: Text(
             text,
             style: const TextStyle(color: Colors.black),
