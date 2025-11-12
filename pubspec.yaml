@@ -60,7 +60,14 @@ flutter:
 
   assets:
     - assets/SkipQ-Logo.png
+<<<<<<< HEAD
     - assets/bunny-home.png
+=======
+    - assets/facebook.png
+    - assets/google.png
+    - assets/apple.png
+
+>>>>>>> 112357ea0ca0bd9be8d68aba1398702b5f851657
 
   # To add assets to your application, add an assets section, like this:
   # assets:
