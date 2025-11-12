@@ -25,6 +25,22 @@ class _RegisterState extends State<Register> {
   String? _selectedSex; // No default selection
 
   @override
+  void dispose() {
+    _fnameController.dispose();
+    _lnameController.dispose();
+    _midController.dispose();
+    _extController.dispose();
+    _emailController.dispose();
+    _contactNumController.dispose();
+    _streetController.dispose();
+    _barangayController.dispose();
+    _municipalityController.dispose();
+    _cityProController.dispose();
+    _dobController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
@@ -42,10 +58,7 @@ class _RegisterState extends State<Register> {
               children: [
                 Padding(
                   padding: const EdgeInsets.only(top: 30),
-                  child: Image.asset(
-                    'assets/SkipQ-Logo.png',
-                    height: 80,
-                  ),
+                  child: Image.asset('assets/SkipQ-Logo.png', height: 80),
                 ),
                 const SizedBox(height: 8),
                 Text(
@@ -64,16 +77,28 @@ class _RegisterState extends State<Register> {
                 ),
                 const SizedBox(height: 25),
 
-                // Added horizontal padding around container 👇
+                // Added horizontal padding around container
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: Container(
                     width: 400,
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: const Color.fromARGB(255, 255, 255, 255).withOpacity(0.40),
+                      color: const Color.fromARGB(
+                        255,
+                        255,
+                        255,
+                        255,
+                      ).withOpacity(0.40),
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: const Color.fromARGB(255, 0, 0, 0).withOpacity(0.50)),
+                      border: Border.all(
+                        color: const Color.fromARGB(
+                          255,
+                          0,
+                          0,
+                          0,
+                        ).withOpacity(0.50),
+                      ),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -165,12 +190,12 @@ class _RegisterState extends State<Register> {
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(10),
                                     ),
-                                    suffixIcon:
-                                        const Icon(Icons.calendar_today),
+                                    suffixIcon: const Icon(
+                                      Icons.calendar_today,
+                                    ),
                                   ),
                                   onTap: () async {
-                                    DateTime? pickedDate =
-                                        await showDatePicker(
+                                    DateTime? pickedDate = await showDatePicker(
                                       context: context,
                                       initialDate: DateTime(2000),
                                       firstDate: DateTime(1900),
@@ -198,11 +223,17 @@ class _RegisterState extends State<Register> {
                                   value: _selectedSex,
                                   items: const [
                                     DropdownMenuItem(
-                                        value: 'Male', child: Text('Male')),
+                                      value: 'Male',
+                                      child: Text('Male'),
+                                    ),
                                     DropdownMenuItem(
-                                        value: 'Female', child: Text('Female')),
+                                      value: 'Female',
+                                      child: Text('Female'),
+                                    ),
                                     DropdownMenuItem(
-                                        value: 'Other', child: Text('Other')),
+                                      value: 'Other',
+                                      child: Text('Other'),
+                                    ),
                                   ],
                                   onChanged: (value) {
                                     setState(() {
@@ -332,10 +363,10 @@ class _RegisterState extends State<Register> {
                                   color: Color.fromARGB(128, 170, 96, 200),
                                 ),
                               ),
-                              padding:
-                                  const EdgeInsets.symmetric(vertical: 14),
+                              padding: const EdgeInsets.symmetric(vertical: 14),
                             ),
                             onPressed: () {
+                              // Navigation to HomePage on click
                               Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(

@@ -33,14 +33,9 @@ class _LoginState extends State<Login> {
               children: [
                 Padding(
                   padding: const EdgeInsets.only(top: 30),
-                  child: Image.asset(
-                    'assets/SkipQ-Logo.png',
-                    height: 80,
-                  ),
+                  child: Image.asset('assets/SkipQ-Logo.png', height: 80),
                 ),
-
                 const SizedBox(height: 8),
-
                 Text(
                   "Log In",
                   style: GoogleFonts.audiowide(
@@ -49,63 +44,63 @@ class _LoginState extends State<Login> {
                     color: const Color(0xFF543063),
                   ),
                 ),
-
                 const SizedBox(height: 8),
-
                 const Text(
                   "Lorem ipsum dolor sit amet, \nconsectetur adipiscing elit.",
-                  style: TextStyle(
-                    color: Colors.black,
-                  ),
+                  style: TextStyle(color: Colors.black),
                   textAlign: TextAlign.center,
                 ),
-
                 const SizedBox(height: 25),
 
-                // Added horizontal padding here 
+                // FORM CONTAINER
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20.0),
                   child: Container(
                     width: 400,
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: const Color.fromARGB(255, 255, 255, 255).withOpacity(0.40),
+                      color: const Color.fromARGB(
+                        255,
+                        255,
+                        255,
+                        255,
+                      ).withOpacity(0.40),
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: const Color.fromARGB(255, 0, 0, 0).withOpacity(0.50)),
+                      border: Border.all(
+                        color: const Color.fromARGB(
+                          255,
+                          0,
+                          0,
+                          0,
+                        ).withOpacity(0.50),
+                      ),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Padding(
-                          padding: const EdgeInsets.only(top: 10.0),
-                          child: TextFormField(
-                            controller: _emailController,
-                            decoration: InputDecoration(
-                              labelText: 'Email Address',
-                              prefixIcon: const Icon(Icons.email),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
+                        TextFormField(
+                          controller: _emailController,
+                          decoration: InputDecoration(
+                            labelText: 'Email Address',
+                            prefixIcon: const Icon(Icons.email),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
                             ),
                           ),
                         ),
-
-                        Padding(
-                          padding:
-                              const EdgeInsets.only(top: 20.0, bottom: 10.0),
-                          child: TextFormField(
-                            controller: _passwordController,
-                            decoration: InputDecoration(
-                              labelText: 'Password',
-                              prefixIcon: const Icon(Icons.lock),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
+                        const SizedBox(height: 20),
+                        TextFormField(
+                          controller: _passwordController,
+                          decoration: InputDecoration(
+                            labelText: 'Password',
+                            prefixIcon: const Icon(Icons.lock),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
                             ),
-                            obscureText: true,
                           ),
+                          obscureText: true,
                         ),
-
+                        const SizedBox(height: 10),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -130,9 +125,7 @@ class _LoginState extends State<Login> {
                             ),
                           ],
                         ),
-
                         const SizedBox(height: 10),
-
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
@@ -145,8 +138,7 @@ class _LoginState extends State<Login> {
                                   color: Color.fromARGB(128, 170, 96, 200),
                                 ),
                               ),
-                              padding:
-                                  const EdgeInsets.symmetric(vertical: 14),
+                              padding: const EdgeInsets.symmetric(vertical: 14),
                             ),
                             onPressed: () {
                               Navigator.pushReplacement(
@@ -172,7 +164,6 @@ class _LoginState extends State<Login> {
                 ),
 
                 const SizedBox(height: 12),
-
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -193,25 +184,21 @@ class _LoginState extends State<Login> {
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 10),
-
                 SizedBox(
                   width: 400,
-                  child: const Divider(
-                    color: Colors.grey,
-                    thickness: 1,
-                  ),
+                  child: const Divider(color: Colors.grey, thickness: 1),
                 ),
-
                 const SizedBox(height: 10),
-
                 SizedBox(
                   width: 400,
                   child: Column(
                     children: [
                       socialButton('assets/google.png', "Sign in with Google"),
-                      socialButton('assets/facebook.png', "Sign in with Facebook"),
+                      socialButton(
+                        'assets/facebook.png',
+                        "Sign in with Facebook",
+                      ),
                       socialButton('assets/apple.png', "Sign in with Apple"),
                     ],
                   ),
@@ -231,15 +218,8 @@ class _LoginState extends State<Login> {
         width: double.infinity,
         child: OutlinedButton.icon(
           onPressed: () {},
-          icon: Image.asset(
-            imagePath,
-            height: 24,
-            width: 24,
-          ),
-          label: Text(
-            text,
-            style: const TextStyle(color: Colors.black),
-          ),
+          icon: Image.asset(imagePath, height: 24, width: 24),
+          label: Text(text, style: const TextStyle(color: Colors.black)),
           style: OutlinedButton.styleFrom(
             padding: const EdgeInsets.symmetric(vertical: 16),
             side: const BorderSide(color: Colors.black38),

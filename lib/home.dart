@@ -13,64 +13,63 @@ class HomePage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 🟣 FULL HEADER SECTION
+              // 🟣 HEADER SECTION
               Container(
                 width: double.infinity,
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [Color.fromARGB(162, 234, 189, 230), Color(0xFFD69ADE)],
+                    colors: [
+                      Color.fromARGB(162, 234, 189, 230),
+                      Color(0xFFD69ADE),
+                    ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(20),
-                    bottomRight: Radius.circular(20),
+                    bottomLeft: Radius.circular(24),
+                    bottomRight: Radius.circular(24),
                   ),
                 ),
                 padding: const EdgeInsets.only(
-                    top: 20, left: 20, right: 20, bottom: 30),
+                  top: 20,
+                  left: 20,
+                  right: 20,
+                  bottom: 30,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // 🔝 Top row: logo and icons
+                    // 🔝 Logo + Icons
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        // Logo
-                        Row(
-                          children: [
-                            Image.asset(
-                              'assets/skipq-logo.png',
-                              height: 42,
-                            ),
-                            const SizedBox(width: 8),
-                          ],
-                        ),
-                        // Icons
+                        Image.asset('assets/skipq-logo.png', height: 30),
                         Row(
                           children: [
                             IconButton(
                               onPressed: () {},
-                              icon: const Icon(Icons.notifications_none,
-                                  color: Colors.white),
+                              icon: const Icon(
+                                Icons.notifications_none,
+                                color: Colors.white,
+                              ),
                             ),
                             IconButton(
                               onPressed: () {},
-                              icon: const Icon(Icons.settings,
-                                  color: Colors.white),
+                              icon: const Icon(
+                                Icons.settings_outlined,
+                                color: Colors.white,
+                              ),
                             ),
                           ],
                         ),
                       ],
                     ),
+                    const SizedBox(height: 10),
 
-                    const SizedBox(height: 20),
-
-                    // 🐰 Greeting + Bunny Image
+                    // 🐰 Greeting + Bunny
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        // Left text column
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -78,17 +77,17 @@ class HomePage extends StatelessWidget {
                               Text(
                                 "Hello, Den!",
                                 style: GoogleFonts.poppins(
-                                  fontSize: 32,
+                                  fontSize: 40,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.white,
+                                  color: Colors.black,
                                 ),
                               ),
                               const SizedBox(height: 6),
                               Text(
                                 "What are we doing today?",
                                 style: GoogleFonts.poppins(
-                                  fontSize: 18,
-                                  color: Colors.white,
+                                  fontSize: 20,
+                                  color: Colors.black,
                                 ),
                               ),
                               const SizedBox(height: 16),
@@ -96,9 +95,14 @@ class HomePage extends StatelessWidget {
                                 onPressed: () {},
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 20,
+                                    vertical: 10,
+                                  ),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12),
                                   ),
+                                  elevation: 0,
                                 ),
                                 child: Text(
                                   "View Appointments",
@@ -111,25 +115,20 @@ class HomePage extends StatelessWidget {
                             ],
                           ),
                         ),
-
-                        // 🐰 Bunny image placeholder
-                        Image.asset(
-                          'assets/bunny-home.png',
-                          height: 100,
-                        ),
+                        Image.asset('assets/bunny-home.png', height: 200),
                       ],
                     ),
                   ],
                 ),
               ),
 
-              // MAIN CONTENT BELOW HEADER
+              // 📅 MAIN CONTENT BELOW HEADER
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 12),
 
                     // 🗓️ Scheduled Appointments
                     Text(
@@ -141,6 +140,7 @@ class HomePage extends StatelessWidget {
                     ),
                     const SizedBox(height: 12),
 
+                    // Appointment Card
                     Container(
                       decoration: BoxDecoration(
                         color: Colors.white,
@@ -148,15 +148,16 @@ class HomePage extends StatelessWidget {
                         boxShadow: [
                           BoxShadow(
                             color: Colors.grey.withOpacity(0.2),
-                            blurRadius: 6,
-                            offset: const Offset(0, 3),
-                          )
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          ),
                         ],
                       ),
                       padding: const EdgeInsets.all(16),
                       child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Left side info
+                          // Left info
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -173,28 +174,39 @@ class HomePage extends StatelessWidget {
                                   children: [
                                     const Icon(Icons.access_time, size: 18),
                                     const SizedBox(width: 4),
-                                    Text("Today - 10:00 AM",
-                                        style: GoogleFonts.poppins(fontSize: 14)),
+                                    Text(
+                                      "Today - 10:00 AM",
+                                      style: GoogleFonts.poppins(fontSize: 14),
+                                    ),
                                   ],
                                 ),
                                 const SizedBox(height: 4),
                                 Row(
                                   children: [
-                                    const Icon(Icons.confirmation_number, size: 18),
+                                    const Icon(
+                                      Icons.confirmation_number,
+                                      size: 18,
+                                    ),
                                     const SizedBox(width: 4),
-                                    Text("SA092",
-                                        style: GoogleFonts.poppins(fontSize: 14)),
+                                    Text(
+                                      "SA092",
+                                      style: GoogleFonts.poppins(fontSize: 14),
+                                    ),
                                   ],
                                 ),
-                                const SizedBox(height: 8),
+                                const SizedBox(height: 10),
                                 Row(
                                   children: [
                                     OutlinedButton(
                                       onPressed: () {},
                                       style: OutlinedButton.styleFrom(
-                                        side: const BorderSide(color: Colors.purple),
+                                        side: const BorderSide(
+                                          color: Colors.purple,
+                                        ),
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(10),
+                                          borderRadius: BorderRadius.circular(
+                                            10,
+                                          ),
                                         ),
                                       ),
                                       child: Text(
@@ -211,7 +223,9 @@ class HomePage extends StatelessWidget {
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: Colors.purple,
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(10),
+                                          borderRadius: BorderRadius.circular(
+                                            10,
+                                          ),
                                         ),
                                       ),
                                       child: Text(
@@ -223,23 +237,32 @@ class HomePage extends StatelessWidget {
                                       ),
                                     ),
                                   ],
-                                )
+                                ),
                               ],
                             ),
                           ),
 
-                          // Queue number
+                          // Queue Number
                           Container(
-                            padding: const EdgeInsets.all(16),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 10,
+                            ),
                             decoration: BoxDecoration(
-                              border: Border.all(color: Colors.purple, width: 2),
+                              border: Border.all(
+                                color: Colors.purple,
+                                width: 2,
+                              ),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Column(
                               children: [
                                 Text(
                                   "Queue Number",
-                                  style: GoogleFonts.poppins(fontSize: 12),
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 12,
+                                    color: Colors.black87,
+                                  ),
                                 ),
                                 Text(
                                   "17",
@@ -275,17 +298,23 @@ class HomePage extends StatelessWidget {
                         boxShadow: [
                           BoxShadow(
                             color: Colors.grey.withOpacity(0.2),
-                            blurRadius: 6,
-                            offset: const Offset(0, 3),
-                          )
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          ),
                         ],
                       ),
                       padding: const EdgeInsets.all(16),
                       child: Column(
                         children: [
-                          _recentItem("West Visayas State University", "September 14, 2025"),
+                          _recentItem(
+                            "West Visayas State University",
+                            "September 14, 2025",
+                          ),
                           _recentItem("BPI", "September 5, 2025"),
-                          _recentItem("West Visayas State University", "August 30, 2025"),
+                          _recentItem(
+                            "West Visayas State University",
+                            "August 30, 2025",
+                          ),
                           const SizedBox(height: 8),
                           Align(
                             alignment: Alignment.centerRight,
@@ -293,7 +322,10 @@ class HomePage extends StatelessWidget {
                               onPressed: () {},
                               child: Text(
                                 "See More",
-                                style: GoogleFonts.poppins(color: Colors.purple),
+                                style: GoogleFonts.poppins(
+                                  color: Colors.purple,
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
                             ),
                           ),
@@ -310,7 +342,6 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  // Helper widget for recent items
   Widget _recentItem(String title, String date) {
     return Column(
       children: [
@@ -331,7 +362,10 @@ class HomePage extends StatelessWidget {
                   ),
                   Text(
                     date,
-                    style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey),
+                    style: GoogleFonts.poppins(
+                      fontSize: 13,
+                      color: Colors.grey,
+                    ),
                   ),
                 ],
               ),
