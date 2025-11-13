@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'home.dart';
 import 'appointment.dart';
+import 'make_appointment.dart';
 import 'profile.dart';
 // import 'register.dart';
 import 'login.dart';
@@ -33,10 +34,29 @@ class MainPage extends StatefulWidget {
 class _MainPageState extends State<MainPage> {
   int _currentIndex = 0;
 
-  final List<Widget> _pages = const [
-    HomePage(),
-    AppointmentPage(),
-    ProfilePage(),
+  // Navigator key for the appointments tab 
+  final GlobalKey<NavigatorState> _appointmentNavKey = GlobalKey<NavigatorState>();
+
+  late final List<Widget> _pages = [
+    const HomePage(),
+    // Nested Navigator for appointments tab
+    Navigator(
+      key: _appointmentNavKey,
+      initialRoute: '/',
+      onGenerateRoute: (RouteSettings settings) {
+        Widget page;
+        switch (settings.name) {
+          case '/make_appointment':
+            page = const MakeAppointmentPage();
+            break;
+          case '/':
+          default:
+            page = const AppointmentPage();
+        }
+        return MaterialPageRoute(builder: (context) => page, settings: settings);
+      },
+    ),
+    const ProfilePage(),
   ];
 
   @override

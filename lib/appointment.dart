@@ -66,7 +66,8 @@ class AppointmentPage extends StatelessWidget {
                   height: 50,
                   child: OutlinedButton.icon(
                     onPressed: () {
-                      // Navigate to make appointment page
+                      // Use the nested Navigator in the Appointments tab
+                      Navigator.of(context).pushNamed('/make_appointment');
                     },
                     style: OutlinedButton.styleFrom(
                       side: const BorderSide(color: Color(0xFFD69ADE), width: 2),
