@@ -110,7 +110,7 @@ class AppointmentPage extends StatelessWidget {
                     const SizedBox(height: 12),
 
                     _appointmentCard(
-                      title: "Landbank",
+                      title: "West Visayas State University",
                       time: "Today - 10:00 AM",
                       code: "SA092",
                       queue: "11",
