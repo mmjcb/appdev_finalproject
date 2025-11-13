@@ -13,7 +13,7 @@ class HomePage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 🟣 HEADER SECTION
+              // Top gradient header
               Container(
                 width: double.infinity,
                 decoration: const BoxDecoration(
@@ -26,8 +26,8 @@ class HomePage extends StatelessWidget {
                     end: Alignment.bottomRight,
                   ),
                   borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(24),
-                    bottomRight: Radius.circular(24),
+                    bottomLeft: Radius.circular(20),
+                    bottomRight: Radius.circular(20),
                   ),
                 ),
                 padding: const EdgeInsets.only(
@@ -39,11 +39,10 @@ class HomePage extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // 🔝 Logo + Icons
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Image.asset('assets/skipq-logo.png', height: 30),
+                        Image.asset('assets/skipq-logo.png', height: 42),
                         Row(
                           children: [
                             IconButton(
@@ -56,7 +55,7 @@ class HomePage extends StatelessWidget {
                             IconButton(
                               onPressed: () {},
                               icon: const Icon(
-                                Icons.settings_outlined,
+                                Icons.settings,
                                 color: Colors.white,
                               ),
                             ),
@@ -66,7 +65,7 @@ class HomePage extends StatelessWidget {
                     ),
                     const SizedBox(height: 10),
 
-                    // 🐰 Greeting + Bunny
+                    // Greeting + image
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
@@ -122,7 +121,7 @@ class HomePage extends StatelessWidget {
                 ),
               ),
 
-              // 📅 MAIN CONTENT BELOW HEADER
+              // Body content
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -130,7 +129,7 @@ class HomePage extends StatelessWidget {
                   children: [
                     const SizedBox(height: 12),
 
-                    // 🗓️ Scheduled Appointments
+                    // Scheduled Appointments section
                     Text(
                       "Scheduled Appointments",
                       style: GoogleFonts.poppins(
@@ -140,7 +139,6 @@ class HomePage extends StatelessWidget {
                     ),
                     const SizedBox(height: 12),
 
-                    // Appointment Card
                     Container(
                       decoration: BoxDecoration(
                         color: Colors.white,
@@ -157,7 +155,6 @@ class HomePage extends StatelessWidget {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Left info
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -242,7 +239,7 @@ class HomePage extends StatelessWidget {
                             ),
                           ),
 
-                          // Queue Number
+                          // Queue number box
                           Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 20,
@@ -265,9 +262,9 @@ class HomePage extends StatelessWidget {
                                   ),
                                 ),
                                 Text(
-                                  "17",
+                                  "11",
                                   style: GoogleFonts.poppins(
-                                    fontSize: 36,
+                                    fontSize: 60,
                                     fontWeight: FontWeight.bold,
                                     color: Colors.purple,
                                   ),
@@ -281,16 +278,32 @@ class HomePage extends StatelessWidget {
 
                     const SizedBox(height: 24),
 
-                    // 🕒 Recent Appointments
-                    Text(
-                      "Recent Appointments",
-                      style: GoogleFonts.poppins(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                      ),
+                    // Recent Appointments header + see more button
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "Recent Appointments",
+                          style: GoogleFonts.poppins(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () {},
+                          child: Text(
+                            "See More",
+                            style: GoogleFonts.poppins(
+                              color: Colors.purple,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 12),
 
+                    // Recent Appointments list
                     Container(
                       decoration: BoxDecoration(
                         color: Colors.white,
@@ -310,24 +323,9 @@ class HomePage extends StatelessWidget {
                             "West Visayas State University",
                             "September 14, 2025",
                           ),
-                          _recentItem("BPI", "September 5, 2025"),
                           _recentItem(
                             "West Visayas State University",
                             "August 30, 2025",
-                          ),
-                          const SizedBox(height: 8),
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: TextButton(
-                              onPressed: () {},
-                              child: Text(
-                                "See More",
-                                style: GoogleFonts.poppins(
-                                  color: Colors.purple,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
                           ),
                         ],
                       ),
@@ -342,6 +340,7 @@ class HomePage extends StatelessWidget {
     );
   }
 
+  // Helper widget for recent appointment items
   Widget _recentItem(String title, String date) {
     return Column(
       children: [

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'home.dart';
 import 'register.dart';
+import 'main.dart'; // ✅ Import MainPage (for navigation after login)
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -59,21 +59,9 @@ class _LoginState extends State<Login> {
                     width: 400,
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: const Color.fromARGB(
-                        255,
-                        255,
-                        255,
-                        255,
-                      ).withOpacity(0.40),
+                      color: Colors.white.withOpacity(0.4),
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: const Color.fromARGB(
-                          255,
-                          0,
-                          0,
-                          0,
-                        ).withOpacity(0.50),
-                      ),
+                      border: Border.all(color: Colors.black.withOpacity(0.5)),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -138,13 +126,15 @@ class _LoginState extends State<Login> {
                                   color: Color.fromARGB(128, 170, 96, 200),
                                 ),
                               ),
-                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 14),
                             ),
                             onPressed: () {
+                              // ✅ Go to MainPage (with navbar)
                               Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => const HomePage(),
+                                  builder: (context) => const MainPage(),
                                 ),
                               );
                             },
@@ -196,9 +186,7 @@ class _LoginState extends State<Login> {
                     children: [
                       socialButton('assets/google.png', "Sign in with Google"),
                       socialButton(
-                        'assets/facebook.png',
-                        "Sign in with Facebook",
-                      ),
+                          'assets/facebook.png', "Sign in with Facebook"),
                       socialButton('assets/apple.png', "Sign in with Apple"),
                     ],
                   ),

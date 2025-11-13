@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'home.dart';
 import 'login.dart';
+import 'main.dart'; // ✅ Import MainPage for navigation after register
 
 class Register extends StatefulWidget {
   const Register({super.key});
@@ -22,7 +22,7 @@ class _RegisterState extends State<Register> {
   final _municipalityController = TextEditingController();
   final _cityProController = TextEditingController();
   final _dobController = TextEditingController();
-  String? _selectedSex; // No default selection
+  String? _selectedSex;
 
   @override
   void dispose() {
@@ -77,27 +77,16 @@ class _RegisterState extends State<Register> {
                 ),
                 const SizedBox(height: 25),
 
-                // Added horizontal padding around container
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: Container(
                     width: 400,
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: const Color.fromARGB(
-                        255,
-                        255,
-                        255,
-                        255,
-                      ).withOpacity(0.40),
+                      color: Colors.white.withOpacity(0.40),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: const Color.fromARGB(
-                          255,
-                          0,
-                          0,
-                          0,
-                        ).withOpacity(0.50),
+                        color: Colors.black.withOpacity(0.50),
                       ),
                     ),
                     child: Column(
@@ -112,6 +101,8 @@ class _RegisterState extends State<Register> {
                           ),
                         ),
                         const SizedBox(height: 10),
+
+                        // First & Middle Name
                         Padding(
                           padding: const EdgeInsets.only(bottom: 20.0),
                           child: Row(
@@ -144,6 +135,8 @@ class _RegisterState extends State<Register> {
                             ],
                           ),
                         ),
+
+                        // Last & Ext Name
                         Padding(
                           padding: const EdgeInsets.only(bottom: 20.0),
                           child: Row(
@@ -176,6 +169,8 @@ class _RegisterState extends State<Register> {
                             ],
                           ),
                         ),
+
+                        // DOB and Sex
                         Padding(
                           padding: const EdgeInsets.only(bottom: 20.0),
                           child: Row(
@@ -190,12 +185,12 @@ class _RegisterState extends State<Register> {
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(10),
                                     ),
-                                    suffixIcon: const Icon(
-                                      Icons.calendar_today,
-                                    ),
+                                    suffixIcon:
+                                        const Icon(Icons.calendar_today),
                                   ),
                                   onTap: () async {
-                                    DateTime? pickedDate = await showDatePicker(
+                                    DateTime? pickedDate =
+                                        await showDatePicker(
                                       context: context,
                                       initialDate: DateTime(2000),
                                       firstDate: DateTime(1900),
@@ -245,6 +240,8 @@ class _RegisterState extends State<Register> {
                             ],
                           ),
                         ),
+
+                        // Contact Information
                         Text(
                           'Contact Information',
                           style: GoogleFonts.audiowide(
@@ -254,6 +251,7 @@ class _RegisterState extends State<Register> {
                           ),
                         ),
                         const SizedBox(height: 10),
+
                         Padding(
                           padding: const EdgeInsets.only(bottom: 20.0),
                           child: TextFormField(
@@ -278,6 +276,8 @@ class _RegisterState extends State<Register> {
                             ),
                           ),
                         ),
+
+                        // Address
                         Text(
                           'Complete Address',
                           style: GoogleFonts.audiowide(
@@ -287,6 +287,7 @@ class _RegisterState extends State<Register> {
                           ),
                         ),
                         const SizedBox(height: 10),
+
                         Padding(
                           padding: const EdgeInsets.only(bottom: 20.0),
                           child: Row(
@@ -319,6 +320,7 @@ class _RegisterState extends State<Register> {
                             ],
                           ),
                         ),
+
                         Padding(
                           padding: const EdgeInsets.only(bottom: 20.0),
                           child: Row(
@@ -351,6 +353,8 @@ class _RegisterState extends State<Register> {
                             ],
                           ),
                         ),
+
+                        // ✅ Button: Go to MainPage (with Navbar)
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
@@ -363,14 +367,14 @@ class _RegisterState extends State<Register> {
                                   color: Color.fromARGB(128, 170, 96, 200),
                                 ),
                               ),
-                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 14),
                             ),
                             onPressed: () {
-                              // Navigation to HomePage on click
                               Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => const HomePage(),
+                                  builder: (context) => const MainPage(), // ✅ FIXED
                                 ),
                               );
                             },
