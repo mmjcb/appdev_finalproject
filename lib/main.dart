@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'home.dart';
 import 'appointment.dart';
 import 'make_appointment.dart';
+import 'appointment_details.dart';
 import 'profile.dart';
 // import 'register.dart';
 import 'login.dart';
@@ -48,6 +49,13 @@ class _MainPageState extends State<MainPage> {
         switch (settings.name) {
           case '/make_appointment':
             page = const MakeAppointmentPage();
+            break;
+          case '/institution_details':
+            final args = settings.arguments as Map<String, dynamic>?;
+            page = AppointmentDetailsPage(
+              institutionName: args?['institutionName'] ?? 'Unknown',
+              institutionType: args?['institutionType'] ?? 'Unknown',
+            );
             break;
           case '/':
           default:
