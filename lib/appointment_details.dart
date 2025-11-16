@@ -48,7 +48,9 @@ class AppointmentDetailsPage extends StatelessWidget {
                   children: [
                     GestureDetector(
                       onTap: () => Navigator.of(context).pop(),
-                      child: const Icon(Icons.arrow_back, color: Colors.white),
+                      child: const Icon(
+                        Icons.arrow_back, 
+                        color: Colors.white),
                     ),
                     Image.asset('assets/skipq-logo.png', height: 42),
                     Row(

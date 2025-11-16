@@ -47,6 +47,12 @@ class _MakeAppointmentPageState extends State<MakeAppointmentPage> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
+                    GestureDetector(
+                      onTap: () => Navigator.of(context).pop(),
+                      child: const Icon(
+                        Icons.arrow_back, 
+                        color: Colors.white),
+                    ),
                     Image.asset('assets/skipq-logo.png', height: 42),
                     Row(
                       children: [
@@ -57,7 +63,10 @@ class _MakeAppointmentPageState extends State<MakeAppointmentPage> {
                         ),
                         IconButton(
                           onPressed: () {},
-                          icon: const Icon(Icons.settings, color: Colors.white),
+                          icon: const Icon(
+                            Icons.settings, 
+                            color: Colors.white
+                          ),
                         ),
                       ],
                     ),
