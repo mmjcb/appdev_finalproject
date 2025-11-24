@@ -148,7 +148,6 @@ class _RegisterState extends State<Register> {
                 const SizedBox(height: 30),
                 Image.asset('assets/SkipQ-Logo.png', height: 80),
                 const SizedBox(height: 8),
-
                 Text(
                   "Create Account",
                   style: GoogleFonts.audiowide(
@@ -163,7 +162,6 @@ class _RegisterState extends State<Register> {
                 ),
                 const SizedBox(height: 25),
 
-                // MAIN CONTAINER
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Container(
@@ -186,15 +184,13 @@ class _RegisterState extends State<Register> {
                               color: Color(0xFF543063)),
                         ),
                         const SizedBox(height: 10),
-
                         Row(
                           children: [
                             Expanded(
                               flex: 3,
                               child: TextFormField(
                                 controller: _fnameController,
-                                decoration:
-                                    _thinBorderDecoration('First Name'),
+                                decoration: _thinBorderDecoration('First Name'),
                               ),
                             ),
                             const SizedBox(width: 10),
@@ -208,15 +204,13 @@ class _RegisterState extends State<Register> {
                           ],
                         ),
                         const SizedBox(height: 10),
-
                         Row(
                           children: [
                             Expanded(
                               flex: 3,
                               child: TextFormField(
                                 controller: _lnameController,
-                                decoration:
-                                    _thinBorderDecoration('Last Name'),
+                                decoration: _thinBorderDecoration('Last Name'),
                               ),
                             ),
                             const SizedBox(width: 10),
@@ -230,7 +224,6 @@ class _RegisterState extends State<Register> {
                           ],
                         ),
                         const SizedBox(height: 10),
-
                         Row(
                           children: [
                             Expanded(
@@ -240,11 +233,9 @@ class _RegisterState extends State<Register> {
                                 readOnly: true,
                                 decoration: _thinBorderDecoration('Date of Birth')
                                     .copyWith(
-                                        suffixIcon:
-                                            const Icon(Icons.calendar_today)),
+                                        suffixIcon: const Icon(Icons.calendar_today)),
                                 onTap: () async {
-                                  DateTime? pickedDate =
-                                      await showDatePicker(
+                                  DateTime? pickedDate = await showDatePicker(
                                     context: context,
                                     initialDate: DateTime(2000),
                                     firstDate: DateTime(1900),
@@ -266,12 +257,9 @@ class _RegisterState extends State<Register> {
                                 decoration: _thinBorderDecoration('Sex'),
                                 value: _selectedSex,
                                 items: const [
-                                  DropdownMenuItem(
-                                      value: 'Male', child: Text('Male')),
-                                  DropdownMenuItem(
-                                      value: 'Female', child: Text('Female')),
-                                  DropdownMenuItem(
-                                      value: 'Other', child: Text('Other')),
+                                  DropdownMenuItem(value: 'Male', child: Text('Male')),
+                                  DropdownMenuItem(value: 'Female', child: Text('Female')),
+                                  DropdownMenuItem(value: 'Other', child: Text('Other')),
                                 ],
                                 onChanged: (value) {
                                   setState(() {
@@ -285,7 +273,7 @@ class _RegisterState extends State<Register> {
 
                         const SizedBox(height: 25),
 
-                        // ADDRESS
+                        // COMPLETE ADDRESS
                         Text(
                           'Complete Address',
                           style: GoogleFonts.audiowide(
@@ -294,43 +282,37 @@ class _RegisterState extends State<Register> {
                               color: Color(0xFF543063)),
                         ),
                         const SizedBox(height: 10),
-
                         Row(
                           children: [
                             Expanded(
                               child: TextFormField(
                                 controller: _streetController,
-                                decoration:
-                                    _thinBorderDecoration('Street'),
+                                decoration: _thinBorderDecoration('Street'),
                               ),
                             ),
                             const SizedBox(width: 10),
                             Expanded(
                               child: TextFormField(
                                 controller: _barangayController,
-                                decoration:
-                                    _thinBorderDecoration('Barangay'),
+                                decoration: _thinBorderDecoration('Barangay'),
                               ),
                             ),
                           ],
                         ),
                         const SizedBox(height: 10),
-
                         Row(
                           children: [
                             Expanded(
                               child: TextFormField(
                                 controller: _municipalityController,
-                                decoration:
-                                    _thinBorderDecoration('Municipality'),
+                                decoration: _thinBorderDecoration('Municipality'),
                               ),
                             ),
                             const SizedBox(width: 10),
                             Expanded(
                               child: TextFormField(
                                 controller: _cityProController,
-                                decoration:
-                                    _thinBorderDecoration('City/Province'),
+                                decoration: _thinBorderDecoration('City/Province'),
                               ),
                             ),
                           ],
@@ -338,7 +320,7 @@ class _RegisterState extends State<Register> {
 
                         const SizedBox(height: 25),
 
-                        // ACCOUNT INFO — NOW LAST
+                        // ACCOUNT INFORMATION — LAST
                         Text(
                           'Account Information',
                           style: GoogleFonts.audiowide(
@@ -347,51 +329,41 @@ class _RegisterState extends State<Register> {
                               color: Color(0xFF543063)),
                         ),
                         const SizedBox(height: 10),
-
                         TextFormField(
                           controller: _contactNumController,
-                          decoration:
-                              _thinBorderDecoration('Contact Number'),
+                          decoration: _thinBorderDecoration('Contact Number'),
                         ),
                         const SizedBox(height: 10),
-
                         TextFormField(
                           controller: _emailController,
-                          decoration:
-                              _thinBorderDecoration('Email Address'),
+                          decoration: _thinBorderDecoration('Email Address'),
                         ),
                         const SizedBox(height: 10),
-
                         TextFormField(
                           controller: _passwordController,
                           obscureText: true,
-                          decoration:
-                              _thinBorderDecoration('Password'),
+                          decoration: _thinBorderDecoration('Password'),
                         ),
 
                         const SizedBox(height: 20),
-
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Color(0xFFEABDE6),
                               foregroundColor: Colors.black,
-                              padding:
-                                  const EdgeInsets.symmetric(vertical: 14),
+                              padding: const EdgeInsets.symmetric(vertical: 14),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10),
                                 side: const BorderSide(
-                                    color:
-                                        Color.fromARGB(128, 170, 96, 200)),
+                                    color: Color.fromARGB(128, 170, 96, 200)),
                               ),
                             ),
                             onPressed: _registerUser,
                             child: const Text(
                               "Create Account",
                               style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold),
+                                  fontSize: 16, fontWeight: FontWeight.bold),
                             ),
                           ),
                         ),
@@ -401,7 +373,6 @@ class _RegisterState extends State<Register> {
                 ),
 
                 const SizedBox(height: 12),
-
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -410,8 +381,7 @@ class _RegisterState extends State<Register> {
                       onPressed: () {
                         Navigator.pushReplacement(
                           context,
-                          MaterialPageRoute(
-                              builder: (context) => const Login()),
+                          MaterialPageRoute(builder: (context) => const Login()),
                         );
                       },
                       child: const Text(

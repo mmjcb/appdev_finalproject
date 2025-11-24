@@ -1,11 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
 
 class AppointmentPage extends StatelessWidget {
   const AppointmentPage({super.key});
 
+  String formatDateTime(dynamic dateTime) {
+    if (dateTime == null) return "Unknown Date";
+    try {
+      DateTime dt;
+      if (dateTime is Timestamp) {
+        dt = dateTime.toDate();
+      } else if (dateTime is String) {
+        dt = DateTime.parse(dateTime);
+      } else {
+        return dateTime.toString();
+      }
+      return DateFormat('MMM dd, yyyy - hh:mm a').format(dt);
+    } catch (e) {
+      return dateTime.toString();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+
     return Scaffold(
       backgroundColor: Colors.grey[100],
       body: SafeArea(
@@ -66,7 +88,6 @@ class AppointmentPage extends StatelessWidget {
                   height: 50,
                   child: OutlinedButton.icon(
                     onPressed: () {
-                      // Use the nested Navigator in the Appointments tab
                       Navigator.of(context).pushNamed('/make_appointment');
                     },
                     style: OutlinedButton.styleFrom(
@@ -94,7 +115,7 @@ class AppointmentPage extends StatelessWidget {
 
               const SizedBox(height: 30),
 
-              // Upcoming Appointments
+              // Scheduled Appointments
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Column(
@@ -109,12 +130,40 @@ class AppointmentPage extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 12),
-
-                    _appointmentCard(
-                      title: "West Visayas State University",
-                      time: "Today - 10:00 AM",
-                      code: "SA092",
-                      queue: "11",
+                    StreamBuilder<QuerySnapshot>(
+                      stream: FirebaseFirestore.instance
+                          .collection('appointments')
+                          .where('userId', isEqualTo: user?.uid)
+                          .where('status', isEqualTo: 'upcoming')
+                          .orderBy('dateTime')
+                          .snapshots(),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return const Center(child: CircularProgressIndicator());
+                        }
+                        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                          return Center(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 20),
+                              child: Text(
+                                "No upcoming appointments",
+                                style: TextStyle(fontSize: 14, color: Colors.grey),
+                              ),
+                            ),
+                          );
+                        }
+                        return Column(
+                          children: snapshot.data!.docs.map((doc) {
+                            final data = doc.data() as Map<String, dynamic>;
+                            return _appointmentCard(
+                              title: data['title'] ?? '',
+                              time: formatDateTime(data['dateTime']),
+                              code: data['code'] ?? '',
+                              queue: data['queue']?.toString() ?? '-',
+                            );
+                          }).toList(),
+                        );
+                      },
                     ),
                   ],
                 ),
@@ -122,6 +171,7 @@ class AppointmentPage extends StatelessWidget {
 
               const SizedBox(height: 30),
 
+              // Appointment History
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Column(
@@ -151,27 +201,38 @@ class AppointmentPage extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 12),
-
-                    // History appointments container (white card)
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.2),
-                            blurRadius: 8,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        children: [
-                          _historyItem("West Visayas State University", "September 14, 2025"),
-                          _historyItem("West Visayas State University", "August 30, 2025"),
-                        ],
-                      ),
+                    StreamBuilder<QuerySnapshot>(
+                      stream: FirebaseFirestore.instance
+                          .collection('appointments')
+                          .where('userId', isEqualTo: user?.uid)
+                          .where('status', isEqualTo: 'completed')
+                          .orderBy('dateTime', descending: true)
+                          .snapshots(),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return const Center(child: CircularProgressIndicator());
+                        }
+                        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                          return Center(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 20),
+                              child: Text(
+                                "No past appointments",
+                                style: TextStyle(fontSize: 14, color: Colors.grey),
+                              ),
+                            ),
+                          );
+                        }
+                        return Column(
+                          children: snapshot.data!.docs.map((doc) {
+                            final data = doc.data() as Map<String, dynamic>;
+                            return _historyItem(
+                              data['title'] ?? '',
+                              formatDateTime(data['dateTime']),
+                            );
+                          }).toList(),
+                        );
+                      },
                     ),
                   ],
                 ),
@@ -185,7 +246,6 @@ class AppointmentPage extends StatelessWidget {
     );
   }
 
-  // Appointment card helper
   Widget _appointmentCard({
     required String title,
     required String time,
@@ -205,6 +265,7 @@ class AppointmentPage extends StatelessWidget {
         ],
       ),
       padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(bottom: 16),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -235,48 +296,9 @@ class AppointmentPage extends StatelessWidget {
                     Text(code, style: GoogleFonts.poppins(fontSize: 14)),
                   ],
                 ),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    OutlinedButton(
-                      onPressed: () {},
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Colors.purple),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      child: Text(
-                        "View",
-                        style: GoogleFonts.poppins(
-                          color: Colors.purple,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    ElevatedButton(
-                      onPressed: () {},
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.purple,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      child: Text(
-                        "Edit",
-                        style: GoogleFonts.poppins(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
               ],
             ),
           ),
-
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             decoration: BoxDecoration(
@@ -305,7 +327,6 @@ class AppointmentPage extends StatelessWidget {
     );
   }
 
-  // History item styled like HomePage recent appointments
   Widget _historyItem(String title, String date) {
     return Column(
       children: [

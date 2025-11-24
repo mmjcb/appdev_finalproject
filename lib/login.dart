@@ -102,23 +102,19 @@ class _LoginState extends State<Login> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Padding(
-                  padding: const EdgeInsets.only(top: 30),
-                  child: Image.asset('assets/SkipQ-Logo.png', height: 80),
-                ),
+                const SizedBox(height: 30),
+                Image.asset('assets/SkipQ-Logo.png', height: 80),
                 const SizedBox(height: 8),
                 Text(
                   "Log In",
                   style: GoogleFonts.audiowide(
                     fontSize: 26,
-                    fontWeight: FontWeight.normal,
                     color: const Color(0xFF543063),
                   ),
                 ),
                 const SizedBox(height: 8),
                 const Text(
-                  "Lorem ipsum dolor sit amet, \nconsectetur adipiscing elit.",
-                  style: TextStyle(color: Colors.black),
+                  "Lorem ipsum dolor sit amet,\nconsectetur adipiscing elit.",
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 25),
@@ -137,12 +133,18 @@ class _LoginState extends State<Login> {
                       children: [
                         TextFormField(
                           controller: _emailController,
-                          decoration: _thinBorderDecoration('Email Address', prefixIcon: const Icon(Icons.email)),
+                          decoration: _thinBorderDecoration(
+                            'Email Address',
+                            prefixIcon: const Icon(Icons.email),
+                          ),
                         ),
                         const SizedBox(height: 20),
                         TextFormField(
                           controller: _passwordController,
-                          decoration: _thinBorderDecoration('Password', prefixIcon: const Icon(Icons.lock)),
+                          decoration: _thinBorderDecoration(
+                            'Password',
+                            prefixIcon: const Icon(Icons.lock),
+                          ),
                           obscureText: true,
                         ),
                         const SizedBox(height: 10),
@@ -163,7 +165,7 @@ class _LoginState extends State<Login> {
                             ),
                             TextButton(
                               onPressed: () {
-                                // TODO: Implement forgot password functionality
+                                // TODO: Implement forgot password
                               },
                               child: const Text(
                                 "Forgot Password",
@@ -191,10 +193,7 @@ class _LoginState extends State<Login> {
                             child: const Text(
                               "Log In",
                               style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.black,
-                                fontWeight: FontWeight.bold,
-                              ),
+                                  fontSize: 16, fontWeight: FontWeight.bold),
                             ),
                           ),
                         ),
@@ -211,7 +210,8 @@ class _LoginState extends State<Login> {
                       onPressed: () {
                         Navigator.pushReplacement(
                           context,
-                          MaterialPageRoute(builder: (context) => const Register()),
+                          MaterialPageRoute(
+                              builder: (context) => const Register()),
                         );
                       },
                       child: const Text(
