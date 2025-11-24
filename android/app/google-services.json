@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "695262628164",
+    "project_id": "skipq-appdev",
+    "storage_bucket": "skipq-appdev.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:695262628164:android:5fca80b1373ae092aeef11",
+        "android_client_info": {
+          "package_name": "com.example.skip_q"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB3kSFXHbkskrLacvhVHwT9XxIC2AZQexI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:695262628164:android:38667eca985757baaeef11",
+        "android_client_info": {
+          "package_name": "skipq.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB3kSFXHbkskrLacvhVHwT9XxIC2AZQexI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

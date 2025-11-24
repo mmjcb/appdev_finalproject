@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'register.dart';
-import 'main.dart'; // ✅ Import MainPage (for navigation after login)
+import 'main.dart';
+
+final FirebaseAuth _auth = FirebaseAuth.instance;
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -14,6 +17,74 @@ class _LoginState extends State<Login> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool rememberMe = false;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  InputDecoration _thinBorderDecoration(String label, {Icon? prefixIcon}) {
+    return InputDecoration(
+      labelText: label,
+      prefixIcon: prefixIcon,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: const BorderSide(width: 1, color: Colors.black54),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: const BorderSide(width: 1, color: Colors.black38),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: const BorderSide(width: 1.5, color: Colors.purple),
+      ),
+    );
+  }
+
+  Future<void> _loginUser() async {
+    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please enter email and password")),
+      );
+      return;
+    }
+
+    try {
+      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Logged in successfully!")),
+      );
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const MainPage()),
+      );
+    } on FirebaseAuthException catch (e) {
+      String message = "";
+      if (e.code == 'user-not-found') {
+        message = "No user found with this email.";
+      } else if (e.code == 'wrong-password') {
+        message = "Incorrect password.";
+      } else {
+        message = e.message ?? "Login failed";
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("An error occurred: $e")),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,8 +122,6 @@ class _LoginState extends State<Login> {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 25),
-
-                // FORM CONTAINER
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20.0),
                   child: Container(
@@ -68,24 +137,12 @@ class _LoginState extends State<Login> {
                       children: [
                         TextFormField(
                           controller: _emailController,
-                          decoration: InputDecoration(
-                            labelText: 'Email Address',
-                            prefixIcon: const Icon(Icons.email),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
+                          decoration: _thinBorderDecoration('Email Address', prefixIcon: const Icon(Icons.email)),
                         ),
                         const SizedBox(height: 20),
                         TextFormField(
                           controller: _passwordController,
-                          decoration: InputDecoration(
-                            labelText: 'Password',
-                            prefixIcon: const Icon(Icons.lock),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
+                          decoration: _thinBorderDecoration('Password', prefixIcon: const Icon(Icons.lock)),
                           obscureText: true,
                         ),
                         const SizedBox(height: 10),
@@ -105,7 +162,9 @@ class _LoginState extends State<Login> {
                               ],
                             ),
                             TextButton(
-                              onPressed: () {},
+                              onPressed: () {
+                                // TODO: Implement forgot password functionality
+                              },
                               child: const Text(
                                 "Forgot Password",
                                 style: TextStyle(color: Colors.purple),
@@ -126,18 +185,9 @@ class _LoginState extends State<Login> {
                                   color: Color.fromARGB(128, 170, 96, 200),
                                 ),
                               ),
-                              padding:
-                                  const EdgeInsets.symmetric(vertical: 14),
+                              padding: const EdgeInsets.symmetric(vertical: 14),
                             ),
-                            onPressed: () {
-                              // ✅ Go to MainPage (with navbar)
-                              Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const MainPage(),
-                                ),
-                              );
-                            },
+                            onPressed: _loginUser,
                             child: const Text(
                               "Log In",
                               style: TextStyle(
@@ -152,7 +202,6 @@ class _LoginState extends State<Login> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 12),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -162,9 +211,7 @@ class _LoginState extends State<Login> {
                       onPressed: () {
                         Navigator.pushReplacement(
                           context,
-                          MaterialPageRoute(
-                            builder: (context) => const Register(),
-                          ),
+                          MaterialPageRoute(builder: (context) => const Register()),
                         );
                       },
                       child: const Text(
@@ -185,8 +232,7 @@ class _LoginState extends State<Login> {
                   child: Column(
                     children: [
                       socialButton('assets/google.png', "Sign in with Google"),
-                      socialButton(
-                          'assets/facebook.png', "Sign in with Facebook"),
+                      socialButton('assets/facebook.png', "Sign in with Facebook"),
                       socialButton('assets/apple.png', "Sign in with Apple"),
                     ],
                   ),
@@ -205,7 +251,9 @@ class _LoginState extends State<Login> {
       child: SizedBox(
         width: double.infinity,
         child: OutlinedButton.icon(
-          onPressed: () {},
+          onPressed: () {
+            // TODO: Implement social login
+          },
           icon: Image.asset(imagePath, height: 24, width: 24),
           label: Text(text, style: const TextStyle(color: Colors.black)),
           style: OutlinedButton.styleFrom(

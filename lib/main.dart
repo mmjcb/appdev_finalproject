@@ -1,13 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+
 import 'home.dart';
 import 'appointment.dart';
 import 'make_appointment.dart';
 import 'appointment_details.dart';
 import 'profile.dart';
-// import 'register.dart';
 import 'login.dart';
+// import 'register.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
   runApp(const SkipQApp());
 }
 
@@ -40,7 +48,7 @@ class _MainPageState extends State<MainPage> {
 
   late final List<Widget> _pages = [
     const HomePage(),
-    // Nested Navigator for appointments tab
+
     Navigator(
       key: _appointmentNavKey,
       initialRoute: '/',
@@ -64,6 +72,7 @@ class _MainPageState extends State<MainPage> {
         return MaterialPageRoute(builder: (context) => page, settings: settings);
       },
     ),
+
     const ProfilePage(),
   ];
 
@@ -102,7 +111,7 @@ class _MainPageState extends State<MainPage> {
             },
             items: const [
               BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-              BottomNavigationBarItem(icon: Icon(Icons.calendar_today),label: 'Appointments',),
+              BottomNavigationBarItem(icon: Icon(Icons.calendar_today), label: 'Appointments'),
               BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
             ],
           ),
