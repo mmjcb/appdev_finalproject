@@ -10,6 +10,7 @@ import 'profile.dart';
 import 'login.dart';
 // import 'register.dart';
 
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
