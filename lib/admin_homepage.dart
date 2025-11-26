@@ -6,12 +6,242 @@ class AdminHomePage extends StatelessWidget {
 
   static const Color gradientStart = Color.fromARGB(162, 234, 189, 230);
   static const Color gradientEnd = Color(0xFFD69ADE);
-  static const Color purpleDark = Color(0xFF4B367C); // Dark purple used in right panel
-  static const Color purpleMid = Color(0xFF7C58D3); // Medium purple used in text highlights
-  static const Color purpleLight = Color(0xFFCBBAE0); // Light purple used in sidebar
+  static const Color purpleDark = Color(0xFF4B367C);
+  static const Color purpleMid = Color(0xFF7C58D3);
+  static const Color purpleLight = Color(0xFFCBBAE0);
 
   @override
   Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Mobile layout for screens narrower than 800px
+        if (constraints.maxWidth < 800) {
+          return _buildMobileLayout(context);
+        }
+        // Desktop layout for wider screens
+        return _buildDesktopLayout(context);
+      },
+    );
+  }
+
+  Widget _buildMobileLayout(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.grey[100],
+      appBar: AppBar(
+        backgroundColor: purpleDark,
+        elevation: 0,
+        title: Text(
+          "SkipQ",
+          style: GoogleFonts.poppins(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: CircleAvatar(
+              backgroundColor: purpleMid,
+              radius: 18,
+              child: const Icon(Icons.person, color: Colors.white, size: 20),
+            ),
+          ),
+        ],
+      ),
+      drawer: _buildMobileDrawer(context),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            // Teller Info Section (at top on mobile)
+            _buildTellerInfoCard(context),
+            
+            // Queue List Section
+            Container(
+              color: Colors.white,
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "In Line",
+                        style: GoogleFonts.poppins(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      FilterDropdown(purpleMid: purpleMid),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  QueueCard(
+                    name: "Jelliane Abono",
+                    queueID: "SQ093",
+                    appointmentID: "APT123",
+                    serviceNeeded: "Open New Account",
+                    purpleMid: purpleMid,
+                  ),
+                  const SizedBox(height: 12),
+                  QueueCard(
+                    name: "Ace Vincent",
+                    queueID: "SQ094",
+                    appointmentID: "APT124",
+                    serviceNeeded: "Foreign Exchange Request",
+                    purpleMid: purpleMid,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMobileDrawer(BuildContext context) {
+    return Drawer(
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [gradientStart, gradientEnd],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: Column(
+          children: [
+            const SizedBox(height: 60),
+            Padding(
+              padding: const EdgeInsets.only(left: 24),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  "SkipQ",
+                  style: GoogleFonts.poppins(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: purpleDark,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 40),
+            SidebarItem(icon: Icons.home, label: "Home", isActive: true, activeColor: purpleDark),
+            SidebarItem(icon: Icons.list_alt, label: "Queues", activeColor: purpleDark),
+            SidebarItem(icon: Icons.archive, label: "Archives", activeColor: purpleDark),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTellerInfoCard(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: purpleDark,
+      ),
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        children: [
+          Text(
+            "TELLER 3",
+            style: GoogleFonts.poppins(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+              letterSpacing: 1.4,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            "NOW SERVING",
+            style: GoogleFonts.poppins(
+              color: purpleLight,
+              fontWeight: FontWeight.bold,
+              fontSize: 20,
+              letterSpacing: 1.2,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            "Den Karyl",
+            style: GoogleFonts.poppins(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 32,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            "SQ092",
+            style: GoogleFonts.poppins(
+              color: Colors.white70,
+              fontWeight: FontWeight.w600,
+              fontSize: 18,
+            ),
+          ),
+          const SizedBox(height: 20),
+          DetailRow(
+            label: "Appointment ID",
+            value: "APT122",
+            labelColor: purpleLight,
+            valueColor: Colors.white,
+          ),
+          const SizedBox(height: 16),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              "Service Needed",
+              style: GoogleFonts.poppins(
+                color: purpleLight,
+                fontWeight: FontWeight.w700,
+                fontSize: 14,
+              ),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              "Report Lost/Stolen Card",
+              style: GoogleFonts.poppins(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+                fontSize: 16,
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              Expanded(
+                child: PurpleButton(
+                  label: "View",
+                  purpleMid: purpleMid,
+                  onPressed: () {},
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: PurpleButton(
+                  label: "Next",
+                  purpleMid: purpleMid,
+                  onPressed: () {},
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDesktopLayout(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[100],
       body: SafeArea(
@@ -72,7 +302,6 @@ class AdminHomePage extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Top row: Admin label + filter dropdown
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -265,12 +494,14 @@ class SidebarItem extends StatelessWidget {
           color: textColor,
         ),
       ),
-      onTap: () {},
+      onTap: () {
+        Navigator.pop(context); // Close drawer on mobile
+      },
     );
   }
 }
 
-// Dropdown filter widget matching colors exactly
+// Dropdown filter widget
 class FilterDropdown extends StatefulWidget {
   final Color purpleMid;
   const FilterDropdown({super.key, required this.purpleMid});
@@ -323,7 +554,7 @@ class _FilterDropdownState extends State<FilterDropdown> {
   }
 }
 
-// Queue card widget for In Line list with correct colors
+// Queue card widget
 class QueueCard extends StatelessWidget {
   final String name;
   final String queueID;
@@ -390,7 +621,7 @@ class InfoRowLabelValue extends StatelessWidget {
         text: TextSpan(
           style: GoogleFonts.poppins(
             fontSize: 12,
-            color:  Colors.black,
+            color: Colors.black,
           ),
           children: [
             TextSpan(text: label, style: const TextStyle(fontWeight: FontWeight.bold)),
@@ -402,7 +633,7 @@ class InfoRowLabelValue extends StatelessWidget {
   }
 }
 
-// Detail row for right info panel
+// Detail row for info panel
 class DetailRow extends StatelessWidget {
   final String label;
   final String value;
@@ -446,7 +677,7 @@ class DetailRow extends StatelessWidget {
   }
 }
 
-// Purple styled button on right panel
+// Purple styled button
 class PurpleButton extends StatelessWidget {
   final String label;
   final VoidCallback onPressed;
@@ -481,7 +712,7 @@ class PurpleButton extends StatelessWidget {
   }
 }
 
-// Extension method to darken color for nice text contrast
+// Extension method to darken color
 extension ColorShading on Color {
   Color darken([double amount = .1]) {
     assert(amount >= 0 && amount <= 1);
