@@ -379,7 +379,8 @@ class _HomePageState extends State<HomePage> {
               children: [
                 Text(
                   "Queue Number",
-                  style: GoogleFonts.poppins(fontSize: 12, color: Colors.black87),
+                  style:
+                      GoogleFonts.poppins(fontSize: 12, color: Colors.black87),
                 ),
                 Text(
                   queueNumber,
