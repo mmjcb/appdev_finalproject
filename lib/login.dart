@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'register.dart';
 import 'main.dart';
+import 'admin_homepage.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
 
@@ -58,14 +60,40 @@ class _LoginState extends State<Login> {
         password: _passwordController.text.trim(),
       );
 
+      // Get user role from Firestore
+      String role = 'user'; // Default role
+      
+      try {
+        DocumentSnapshot userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userCredential.user!.uid)
+            .get();
+
+        if (userDoc.exists && userDoc.data() != null) {
+          Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
+          role = userData['role'] ?? 'user'; // Get role if it exists, otherwise default to 'user'
+        }
+      } catch (e) {
+        // If there's an error fetching the role, default to 'user'
+        print("Error fetching user role: $e");
+      }
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Logged in successfully!")),
       );
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const MainPage()),
-      );
+      // Navigate based on role
+      if (role == 'admin') {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const AdminHomePage()),
+        );
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const MainPage()),
+        );
+      }
     } on FirebaseAuthException catch (e) {
       String message = "";
       if (e.code == 'user-not-found') {
@@ -205,10 +233,10 @@ class _LoginState extends State<Login> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text("Don’t have an account yet? "),
+                    const Text("Don't have an account yet? "),
                     TextButton(
                       onPressed: () {
-                        Navigator.pushReplacement(
+                        Navigator.push(
                           context,
                           MaterialPageRoute(
                               builder: (context) => const Register()),

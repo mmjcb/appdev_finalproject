@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'login.dart';
 
 class AdminHomePage extends StatelessWidget {
   const AdminHomePage({super.key});
@@ -9,6 +11,14 @@ class AdminHomePage extends StatelessWidget {
   static const Color purpleDark = Color(0xFF4B367C);
   static const Color purpleMid = Color(0xFF7C58D3);
   static const Color purpleLight = Color(0xFFCBBAE0);
+
+  Future<void> _logout(BuildContext context) async {
+    await FirebaseAuth.instance.signOut();
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const Login()),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,8 +49,13 @@ class AdminHomePage extends StatelessWidget {
           ),
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.logout, color: Colors.white),
+            onPressed: () => _logout(context),
+            tooltip: 'Logout',
+          ),
           Padding(
-            padding: const EdgeInsets.only(right: 16),
+            padding: const EdgeInsets.only(right: 16, left: 8),
             child: CircleAvatar(
               backgroundColor: purpleMid,
               radius: 18,
@@ -133,6 +148,22 @@ class AdminHomePage extends StatelessWidget {
             SidebarItem(icon: Icons.home, label: "Home", isActive: true, activeColor: purpleDark),
             SidebarItem(icon: Icons.list_alt, label: "Queues", activeColor: purpleDark),
             SidebarItem(icon: Icons.archive, label: "Archives", activeColor: purpleDark),
+            const Spacer(),
+            ListTile(
+              dense: true,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+              leading: const Icon(Icons.logout, color: purpleDark),
+              title: Text(
+                "Logout",
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                  color: purpleDark,
+                ),
+              ),
+              onTap: () => _logout(context),
+            ),
+            const SizedBox(height: 20),
           ],
         ),
       ),
@@ -281,6 +312,21 @@ class AdminHomePage extends StatelessWidget {
                   SidebarItem(icon: Icons.list_alt, label: "Queues", activeColor: purpleDark),
                   SidebarItem(icon: Icons.archive, label: "Archives", activeColor: purpleDark),
                   const Spacer(),
+                  ListTile(
+                    dense: true,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+                    leading: const Icon(Icons.logout, color: purpleDark),
+                    title: Text(
+                      "Logout",
+                      style: GoogleFonts.poppins(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                        color: purpleDark,
+                      ),
+                    ),
+                    onTap: () => _logout(context),
+                  ),
+                  const SizedBox(height: 10),
                   Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: CircleAvatar(
