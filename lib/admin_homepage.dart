@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'login.dart';
+import 'admin_archives.dart';
 
 class AdminHomePage extends StatelessWidget {
   const AdminHomePage({super.key});
@@ -11,14 +10,6 @@ class AdminHomePage extends StatelessWidget {
   static const Color purpleDark = Color(0xFF4B367C);
   static const Color purpleMid = Color(0xFF7C58D3);
   static const Color purpleLight = Color(0xFFCBBAE0);
-
-  Future<void> _logout(BuildContext context) async {
-    await FirebaseAuth.instance.signOut();
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const Login()),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,13 +40,8 @@ class AdminHomePage extends StatelessWidget {
           ),
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.logout, color: Colors.white),
-            onPressed: () => _logout(context),
-            tooltip: 'Logout',
-          ),
           Padding(
-            padding: const EdgeInsets.only(right: 16, left: 8),
+            padding: const EdgeInsets.only(right: 16),
             child: CircleAvatar(
               backgroundColor: purpleMid,
               radius: 18,
@@ -70,7 +56,7 @@ class AdminHomePage extends StatelessWidget {
           children: [
             // Teller Info Section (at top on mobile)
             _buildTellerInfoCard(context),
-            
+
             // Queue List Section
             Container(
               color: Colors.white,
@@ -145,25 +131,17 @@ class AdminHomePage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 40),
-            SidebarItem(icon: Icons.home, label: "Home", isActive: true, activeColor: purpleDark),
-            SidebarItem(icon: Icons.list_alt, label: "Queues", activeColor: purpleDark),
-            SidebarItem(icon: Icons.archive, label: "Archives", activeColor: purpleDark),
-            const Spacer(),
-            ListTile(
-              dense: true,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-              leading: const Icon(Icons.logout, color: purpleDark),
-              title: Text(
-                "Logout",
-                style: GoogleFonts.poppins(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14,
-                  color: purpleDark,
-                ),
-              ),
-              onTap: () => _logout(context),
-            ),
-            const SizedBox(height: 20),
+            SidebarItem(
+                icon: Icons.home,
+                label: "Home",
+                isActive: true,
+                activeColor: purpleDark),
+            SidebarItem(
+                icon: Icons.list_alt, label: "Queues", activeColor: purpleDark),
+            SidebarItem(
+                icon: Icons.archive,
+                label: "Archives",
+                activeColor: purpleDark),
           ],
         ),
       ),
@@ -200,7 +178,7 @@ class AdminHomePage extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            "Den Karyl",
+            "Den Karryl",
             style: GoogleFonts.poppins(
               color: Colors.white,
               fontWeight: FontWeight.bold,
@@ -308,31 +286,26 @@ class AdminHomePage extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 50),
-                  SidebarItem(icon: Icons.home, label: "Home", isActive: true, activeColor: purpleDark),
-                  SidebarItem(icon: Icons.list_alt, label: "Queues", activeColor: purpleDark),
-                  SidebarItem(icon: Icons.archive, label: "Archives", activeColor: purpleDark),
+                  SidebarItem(
+                      icon: Icons.home,
+                      label: "Home",
+                      isActive: true,
+                      activeColor: purpleDark),
+                  SidebarItem(
+                      icon: Icons.list_alt,
+                      label: "Queues",
+                      activeColor: purpleDark),
+                  SidebarItem(
+                      icon: Icons.archive,
+                      label: "Archives",
+                      activeColor: purpleDark),
                   const Spacer(),
-                  ListTile(
-                    dense: true,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-                    leading: const Icon(Icons.logout, color: purpleDark),
-                    title: Text(
-                      "Logout",
-                      style: GoogleFonts.poppins(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
-                        color: purpleDark,
-                      ),
-                    ),
-                    onTap: () => _logout(context),
-                  ),
-                  const SizedBox(height: 10),
                   Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: CircleAvatar(
                       backgroundColor: purpleDark,
-                      child: const Icon(Icons.person, color: Colors.white),
                       radius: 20,
+                      child: const Icon(Icons.person, color: Colors.white),
                     ),
                   ),
                 ],
@@ -344,7 +317,8 @@ class AdminHomePage extends StatelessWidget {
               flex: 3,
               child: Container(
                 color: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -410,7 +384,8 @@ class AdminHomePage extends StatelessWidget {
                     bottomLeft: Radius.circular(20),
                   ),
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 48),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 40, vertical: 48),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
@@ -435,7 +410,7 @@ class AdminHomePage extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      "Den Karyl",
+                      "Den Karryl",
                       style: GoogleFonts.poppins(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
@@ -492,9 +467,15 @@ class AdminHomePage extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        PurpleButton(label: "View Appointment", purpleMid: purpleMid, onPressed: () {}),
+                        PurpleButton(
+                            label: "View Appointment",
+                            purpleMid: purpleMid,
+                            onPressed: () {}),
                         const SizedBox(width: 24),
-                        PurpleButton(label: "Next", purpleMid: purpleMid, onPressed: () {}),
+                        PurpleButton(
+                            label: "Next",
+                            purpleMid: purpleMid,
+                            onPressed: () {}),
                       ],
                     ),
                   ],
@@ -514,14 +495,16 @@ class SidebarItem extends StatelessWidget {
   final String label;
   final bool isActive;
   final Color activeColor;
+  final VoidCallback? onTapAction;
 
   const SidebarItem({
-    Key? key,
+    super.key,
     required this.icon,
     required this.label,
     this.isActive = false,
     required this.activeColor,
-  }) : super(key: key);
+    this.onTapAction,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -541,7 +524,10 @@ class SidebarItem extends StatelessWidget {
         ),
       ),
       onTap: () {
-        Navigator.pop(context); // Close drawer on mobile
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => ArchivesPage()),
+        ); // Close drawer on mobile
       },
     );
   }
@@ -591,7 +577,9 @@ class _FilterDropdownState extends State<FilterDropdown> {
           },
           items: <String>['Regular', 'Priority']
               .map<DropdownMenuItem<String>>(
-                (e) => DropdownMenuItem<String>(value: e, child: Text(e, style: GoogleFonts.poppins(fontSize: 12))),
+                (e) => DropdownMenuItem<String>(
+                    value: e,
+                    child: Text(e, style: GoogleFonts.poppins(fontSize: 12))),
               )
               .toList(),
         ),
@@ -609,13 +597,13 @@ class QueueCard extends StatelessWidget {
   final Color purpleMid;
 
   const QueueCard({
-    Key? key,
+    super.key,
     required this.name,
     required this.queueID,
     required this.appointmentID,
     required this.serviceNeeded,
     required this.purpleMid,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -638,9 +626,16 @@ class QueueCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 6),
-          InfoRowLabelValue(label: "Queue ID:", value: queueID, purpleMid: purpleMid),
-          InfoRowLabelValue(label: "Appointment ID:", value: appointmentID, purpleMid: purpleMid),
-          InfoRowLabelValue(label: "Service Needed:", value: serviceNeeded, purpleMid: purpleMid),
+          InfoRowLabelValue(
+              label: "Queue ID:", value: queueID, purpleMid: purpleMid),
+          InfoRowLabelValue(
+              label: "Appointment ID:",
+              value: appointmentID,
+              purpleMid: purpleMid),
+          InfoRowLabelValue(
+              label: "Service Needed:",
+              value: serviceNeeded,
+              purpleMid: purpleMid),
         ],
       ),
     );
@@ -653,11 +648,11 @@ class InfoRowLabelValue extends StatelessWidget {
   final Color purpleMid;
 
   const InfoRowLabelValue({
-    Key? key,
+    super.key,
     required this.label,
     required this.value,
     required this.purpleMid,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -670,7 +665,9 @@ class InfoRowLabelValue extends StatelessWidget {
             color: Colors.black,
           ),
           children: [
-            TextSpan(text: label, style: const TextStyle(fontWeight: FontWeight.bold)),
+            TextSpan(
+                text: label,
+                style: const TextStyle(fontWeight: FontWeight.bold)),
             TextSpan(text: " $value"),
           ],
         ),
@@ -687,12 +684,12 @@ class DetailRow extends StatelessWidget {
   final Color valueColor;
 
   const DetailRow({
-    Key? key,
+    super.key,
     required this.label,
     required this.value,
     required this.labelColor,
     required this.valueColor,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -730,11 +727,11 @@ class PurpleButton extends StatelessWidget {
   final Color purpleMid;
 
   const PurpleButton({
-    Key? key,
+    super.key,
     required this.label,
     required this.onPressed,
     required this.purpleMid,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
