@@ -1,30 +1,38 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'admin_queues.dart';
 import 'admin_archives.dart';
 
-class AdminHomePage extends StatelessWidget {
+class AdminHomePage extends StatefulWidget {
   const AdminHomePage({super.key});
 
+  @override
+  State<AdminHomePage> createState() => _AdminHomePageState();
+}
+
+class _AdminHomePageState extends State<AdminHomePage> {
   static const Color gradientStart = Color.fromARGB(162, 234, 189, 230);
   static const Color gradientEnd = Color(0xFFD69ADE);
   static const Color purpleDark = Color(0xFF4B367C);
   static const Color purpleMid = Color(0xFF7C58D3);
   static const Color purpleLight = Color(0xFFCBBAE0);
 
+  String activePage = "Home";
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Mobile layout for screens narrower than 800px
         if (constraints.maxWidth < 800) {
           return _buildMobileLayout(context);
         }
-        // Desktop layout for wider screens
         return _buildDesktopLayout(context);
       },
     );
   }
 
+  // ------------------- MOBILE LAYOUT -------------------
   Widget _buildMobileLayout(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[100],
@@ -54,10 +62,7 @@ class AdminHomePage extends StatelessWidget {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // Teller Info Section (at top on mobile)
-            _buildTellerInfoCard(context),
-
-            // Queue List Section
+            _buildTellerInfoCard(),
             Container(
               color: Colors.white,
               padding: const EdgeInsets.all(20),
@@ -79,20 +84,46 @@ class AdminHomePage extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  QueueCard(
-                    name: "Jelliane Abono",
-                    queueID: "SQ093",
-                    appointmentID: "APT123",
-                    serviceNeeded: "Open New Account",
-                    purpleMid: purpleMid,
-                  ),
-                  const SizedBox(height: 12),
-                  QueueCard(
-                    name: "Ace Vincent",
-                    queueID: "SQ094",
-                    appointmentID: "APT124",
-                    serviceNeeded: "Foreign Exchange Request",
-                    purpleMid: purpleMid,
+                  StreamBuilder<QuerySnapshot>(
+                    stream: FirebaseFirestore.instance
+                        .collection('appointments')
+                        .orderBy('createdAt')
+                        .snapshots(),
+                    builder: (context, snapshot) {
+                      if (!snapshot.hasData) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      final docs = snapshot.data!.docs;
+
+                      return Column(
+                        children: docs.asMap().entries.map((entry) {
+                          final index = entry.key;
+                          final doc = entry.value;
+
+                          final queueNumber = index + 1;
+
+                          // Update Firestore only if queue number has changed
+                          if (doc['queuenum'] != queueNumber) {
+                            FirebaseFirestore.instance
+                                .collection('appointments')
+                                .doc(doc.id)
+                                .update({'queuenum': queueNumber});
+                          }
+
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            child: QueueCard(
+                              queuenum: queueNumber,
+                              appointmentnum: doc['appointmentnum'],
+                              appointmentdate: doc['appointmentdate'],
+                              purpose: doc['purpose'],
+                              purpleMid: purpleMid,
+                              userId: doc['userId'],
+                            ),
+                          );
+                        }).toList(),
+                      );
+                    },
                   ),
                 ],
               ),
@@ -106,8 +137,8 @@ class AdminHomePage extends StatelessWidget {
   Widget _buildMobileDrawer(BuildContext context) {
     return Drawer(
       child: Container(
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
             colors: [gradientStart, gradientEnd],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -125,147 +156,175 @@ class AdminHomePage extends StatelessWidget {
                   style: GoogleFonts.poppins(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
-                    color: purpleDark,
+                    color: Colors.purple,
                   ),
                 ),
               ),
             ),
             const SizedBox(height: 40),
             SidebarItem(
-                icon: Icons.home,
-                label: "Home",
-                isActive: true,
-                activeColor: purpleDark),
+              icon: Icons.home,
+              label: "Home",
+              isActive: activePage == "Home",
+              activeColor: purpleDark,
+              onTap: () {
+                setState(() => activePage = "Home");
+                Navigator.pop(context);
+              },
+            ),
             SidebarItem(
-                icon: Icons.list_alt, label: "Queues", activeColor: purpleDark),
+              icon: Icons.list_alt,
+              label: "Queues",
+              isActive: activePage == "Queues",
+              activeColor: purpleDark,
+              onTap: () {
+                setState(() => activePage = "Queues");
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const QueuesPage()),
+                );
+              },
+            ),
             SidebarItem(
-                icon: Icons.archive,
-                label: "Archives",
-                activeColor: purpleDark),
+              icon: Icons.archive,
+              label: "Archives",
+              isActive: activePage == "Archives",
+              activeColor: purpleDark,
+              onTap: () {
+                setState(() => activePage = "Archives");
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const ArchivesPage()),
+                );
+              },
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildTellerInfoCard(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: purpleDark,
-      ),
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        children: [
-          Text(
-            "TELLER 3",
-            style: GoogleFonts.poppins(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 14,
-              letterSpacing: 1.4,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            "NOW SERVING",
-            style: GoogleFonts.poppins(
-              color: purpleLight,
-              fontWeight: FontWeight.bold,
-              fontSize: 20,
-              letterSpacing: 1.2,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            "Den Karryl",
-            style: GoogleFonts.poppins(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 32,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            "SQ092",
-            style: GoogleFonts.poppins(
-              color: Colors.white70,
-              fontWeight: FontWeight.w600,
-              fontSize: 18,
-            ),
-          ),
-          const SizedBox(height: 20),
-          DetailRow(
-            label: "Appointment ID",
-            value: "APT122",
-            labelColor: purpleLight,
-            valueColor: Colors.white,
-          ),
-          const SizedBox(height: 16),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              "Service Needed",
-              style: GoogleFonts.poppins(
-                color: purpleLight,
-                fontWeight: FontWeight.w700,
-                fontSize: 14,
+  Widget _buildTellerInfoCard() {
+    return StreamBuilder<DocumentSnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('tellers')
+          .doc('teller3')
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const SizedBox(
+              height: 200, child: Center(child: CircularProgressIndicator()));
+        }
+
+        final data = snapshot.data!.data() as Map<String, dynamic>? ?? {};
+        final currentQueue = data['currentQueue'] ?? "-";
+        final currentAppointment = data['currentAppointment'] ?? "-";
+        final purpose = data['purpose'] ?? "-";
+        final userId = data['currentUserId'] ?? "";
+
+        return FutureBuilder<DocumentSnapshot>(
+          future:
+              FirebaseFirestore.instance.collection('users').doc(userId).get(),
+          builder: (context, userSnapshot) {
+            String customerName = "-";
+            if (userSnapshot.hasData && userSnapshot.data!.exists) {
+              final userData =
+                  userSnapshot.data!.data() as Map<String, dynamic>? ?? {};
+              final fname = userData['firstName'] ?? "";
+              final mid = userData['middleInitial'] ?? "";
+              final lname = userData['lastName'] ?? "";
+              final ext = userData['ext'] ?? "";
+
+              customerName =
+                  "$fname${mid.isNotEmpty ? ' $mid' : ''} $lname${ext.isNotEmpty ? ', $ext' : ''}"
+                      .trim();
+            }
+
+            return Container(
+              width: double.infinity,
+              color: purpleDark,
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                children: [
+                  const SizedBox(height: 8),
+                  Text(
+                    "NOW SERVING",
+                    style: GoogleFonts.poppins(
+                      color: purpleLight,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    currentQueue.toString(),
+                    style: GoogleFonts.poppins(
+                      color: Colors.white70,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 20,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  DetailRow(
+                      label: "Customer Name",
+                      value: customerName,
+                      labelColor: purpleLight,
+                      valueColor: Colors.white),
+                  const SizedBox(height: 16),
+                  DetailRow(
+                      label: "Appointment ID",
+                      value: currentAppointment.toString(),
+                      labelColor: purpleLight,
+                      valueColor: Colors.white),
+                  const SizedBox(height: 16),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      "Purpose of Appointment",
+                      style: GoogleFonts.poppins(
+                        color: purpleLight,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      purpose,
+                      style: GoogleFonts.poppins(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 16),
+                    ),
+                  ),
+                ],
               ),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              "Report Lost/Stolen Card",
-              style: GoogleFonts.poppins(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-                fontSize: 16,
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-          Row(
-            children: [
-              Expanded(
-                child: PurpleButton(
-                  label: "View",
-                  purpleMid: purpleMid,
-                  onPressed: () {},
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: PurpleButton(
-                  label: "Next",
-                  purpleMid: purpleMid,
-                  onPressed: () {},
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
+            );
+          },
+        );
+      },
     );
   }
 
+  // ------------------- DESKTOP LAYOUT -------------------
   Widget _buildDesktopLayout(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[100],
       body: SafeArea(
         child: Row(
           children: [
-            // Left Sidebar
+            // Sidebar
             Container(
               width: 180,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
                   colors: [gradientStart, gradientEnd],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
-                borderRadius: const BorderRadius.only(
+                borderRadius: BorderRadius.only(
                   topRight: Radius.circular(20),
                   bottomRight: Radius.circular(20),
                 ),
@@ -289,19 +348,38 @@ class AdminHomePage extends StatelessWidget {
                   SidebarItem(
                       icon: Icons.home,
                       label: "Home",
-                      isActive: true,
-                      activeColor: purpleDark),
+                      isActive: activePage == "Home",
+                      activeColor: purpleDark,
+                      onTap: () => setState(() => activePage = "Home")),
                   SidebarItem(
                       icon: Icons.list_alt,
                       label: "Queues",
-                      activeColor: purpleDark),
+                      isActive: activePage == "Queues",
+                      activeColor: purpleDark,
+                      onTap: () {
+                        setState(() => activePage = "Queues");
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => const QueuesPage()),
+                        );
+                      }),
                   SidebarItem(
                       icon: Icons.archive,
                       label: "Archives",
-                      activeColor: purpleDark),
+                      isActive: activePage == "Archives",
+                      activeColor: purpleDark,
+                      onTap: () {
+                        setState(() => activePage = "Archives");
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => const ArchivesPage()),
+                        );
+                      }),
                   const Spacer(),
                   Padding(
-                    padding: const EdgeInsets.all(16.0),
+                    padding: const EdgeInsets.all(16),
                     child: CircleAvatar(
                       backgroundColor: purpleDark,
                       radius: 20,
@@ -311,14 +389,13 @@ class AdminHomePage extends StatelessWidget {
                 ],
               ),
             ),
-
-            // Middle section: Filter + In Line list
+            // Middle panel
             Expanded(
               flex: 3,
               child: Container(
-                color: Colors.white,
                 padding:
                     const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+                color: Colors.white,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -347,155 +424,162 @@ class AdminHomePage extends StatelessWidget {
                     ),
                     const SizedBox(height: 14),
                     Expanded(
-                      child: ListView(
-                        padding: EdgeInsets.zero,
-                        children: [
-                          QueueCard(
-                            name: "Jelliane Abono",
-                            queueID: "SQ093",
-                            appointmentID: "APT123",
-                            serviceNeeded: "Open New Account",
-                            purpleMid: purpleMid,
-                          ),
-                          const SizedBox(height: 12),
-                          QueueCard(
-                            name: "Ace Vincent",
-                            queueID: "SQ094",
-                            appointmentID: "APT124",
-                            serviceNeeded: "Foreign Exchange Request",
-                            purpleMid: purpleMid,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+                      child: StreamBuilder<QuerySnapshot>(
+                        stream: FirebaseFirestore.instance
+                            .collection('appointments')
+                            .orderBy('createdAt')
+                            .snapshots(),
+                        builder: (context, snapshot) {
+                          if (!snapshot.hasData) {
+                            return const Center(
+                                child: CircularProgressIndicator());
+                          }
+                          final docs = snapshot.data!.docs;
 
-            // Right Teller Information Panel
-            Expanded(
-              flex: 2,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: purpleDark,
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(20),
-                    bottomLeft: Radius.circular(20),
-                  ),
-                ),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 40, vertical: 48),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Text(
-                      "TELLER 3",
-                      style: GoogleFonts.poppins(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                        letterSpacing: 1.4,
+                          return ListView(
+                            padding: EdgeInsets.zero,
+                            children: docs.asMap().entries.map((entry) {
+                              final index = entry.key;
+                              final doc = entry.value;
+
+                              final queueNumber = index + 1;
+                              if (doc['queuenum'] != queueNumber) {
+                                FirebaseFirestore.instance
+                                    .collection('appointments')
+                                    .doc(doc.id)
+                                    .update({'queuenum': queueNumber});
+                              }
+
+                              return Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 8),
+                                child: QueueCard(
+                                  queuenum: queueNumber,
+                                  appointmentnum: doc['appointmentnum'],
+                                  appointmentdate: doc['appointmentdate'],
+                                  purpose: doc['purpose'],
+                                  purpleMid: purpleMid,
+                                  userId: doc['userId'],
+                                ),
+                              );
+                            }).toList(),
+                          );
+                        },
                       ),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      "NOW SERVING",
-                      style: GoogleFonts.poppins(
-                        color: purpleLight,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 24,
-                        letterSpacing: 1.2,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      "Den Karryl",
-                      style: GoogleFonts.poppins(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 40,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      "SQ092",
-                      style: GoogleFonts.poppins(
-                        color: Colors.white70,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 20,
-                      ),
-                    ),
-                    const SizedBox(height: 32),
-                    DetailRow(
-                      label: "Appointment ID",
-                      value: "APT122",
-                      labelColor: purpleLight,
-                      valueColor: Colors.white,
-                    ),
-                    DetailRow(
-                      label: "Estimated Time",
-                      value: "45 mins",
-                      labelColor: purpleLight,
-                      valueColor: Colors.white,
-                    ),
-                    const SizedBox(height: 20),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        "Service Needed",
-                        style: GoogleFonts.poppins(
-                          color: purpleLight,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        "Report Lost/Stolen Card",
-                        style: GoogleFonts.poppins(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 18,
-                        ),
-                      ),
-                    ),
-                    const Spacer(),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        PurpleButton(
-                            label: "View Appointment",
-                            purpleMid: purpleMid,
-                            onPressed: () {}),
-                        const SizedBox(width: 24),
-                        PurpleButton(
-                            label: "Next",
-                            purpleMid: purpleMid,
-                            onPressed: () {}),
-                      ],
                     ),
                   ],
                 ),
               ),
             ),
+            // Right panel
+            Expanded(flex: 2, child: _buildTellerInfoPanelDesktop()),
           ],
         ),
       ),
     );
   }
+
+  Widget _buildTellerInfoPanelDesktop() {
+    return StreamBuilder<DocumentSnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('tellers')
+          .doc('teller3')
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+
+        final data = snapshot.data!.data() as Map<String, dynamic>? ?? {};
+        final currentQueue = data['currentQueue'] ?? "-";
+        final currentAppointment = data['currentAppointment'] ?? "-";
+        final purpose = data['purpose'] ?? "-";
+        final userId = data['currentUserId'] ?? "";
+
+        return FutureBuilder<DocumentSnapshot>(
+          future: FirebaseFirestore.instance.collection('users').doc(userId).get(),
+          builder: (context, userSnapshot) {
+            String customerName = "-";
+            if (userSnapshot.hasData && userSnapshot.data!.exists) {
+              final userData = userSnapshot.data!.data() as Map<String, dynamic>? ?? {};
+              final firstName = userData['firstName'] ?? "";
+              final middleInitial = userData['middleInitial'] ?? "";
+              final lastName = userData['lastName'] ?? "";
+              final ext = userData['ext'] ?? "";
+
+              customerName =
+                  "$firstName${middleInitial.isNotEmpty ? ' $middleInitial' : ''} $lastName${ext.isNotEmpty ? ', $ext' : ''}".trim();
+            }
+
+            return Container(
+              decoration: BoxDecoration(
+                color: purpleDark,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(20),
+                  bottomLeft: Radius.circular(20),
+                ),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 48),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const SizedBox(height: 12),
+                  Text("NOW SERVING",
+                      style: GoogleFonts.poppins(
+                          color: purpleLight,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 24)),
+                  const SizedBox(height: 16),
+                  Text(currentQueue.toString(),
+                      style: GoogleFonts.poppins(
+                          color: Colors.white70,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 22)),
+                  const SizedBox(height: 16),
+                  DetailRow(
+                      label: "Customer Name",
+                      value: customerName,
+                      labelColor: purpleLight,
+                      valueColor: Colors.white),
+                  const SizedBox(height: 16),
+                  DetailRow(
+                      label: "Appointment ID",
+                      value: currentAppointment.toString(),
+                      labelColor: purpleLight,
+                      valueColor: Colors.white),
+                  const SizedBox(height: 20),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text("Purpose",
+                        style: GoogleFonts.poppins(
+                            color: purpleLight,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 16)),
+                  ),
+                  const SizedBox(height: 6),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(purpose,
+                        style: GoogleFonts.poppins(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 18)),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
 }
 
-// Sidebar navigation item widget
+// ------------------- WIDGETS -------------------
 class SidebarItem extends StatelessWidget {
   final IconData icon;
   final String label;
   final bool isActive;
   final Color activeColor;
-  final VoidCallback? onTapAction;
+  final VoidCallback? onTap;
 
   const SidebarItem({
     super.key,
@@ -503,18 +587,15 @@ class SidebarItem extends StatelessWidget {
     required this.label,
     this.isActive = false,
     required this.activeColor,
-    this.onTapAction,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     final textColor = isActive ? activeColor : activeColor.withOpacity(0.7);
-    final iconColor = textColor;
-
     return ListTile(
       dense: true,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-      leading: Icon(icon, color: iconColor),
+      leading: Icon(icon, color: textColor),
       title: Text(
         label,
         style: GoogleFonts.poppins(
@@ -523,17 +604,11 @@ class SidebarItem extends StatelessWidget {
           color: textColor,
         ),
       ),
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => ArchivesPage()),
-        ); // Close drawer on mobile
-      },
+      onTap: onTap,
     );
   }
 }
 
-// Dropdown filter widget
 class FilterDropdown extends StatefulWidget {
   final Color purpleMid;
   const FilterDropdown({super.key, required this.purpleMid});
@@ -566,21 +641,17 @@ class _FilterDropdownState extends State<FilterDropdown> {
             child: Text(
               "Filter",
               style: GoogleFonts.poppins(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 12,
-              ),
+                  color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
             ),
           ),
           onChanged: (String? newValue) {
             if (newValue != null) setState(() => dropdownValue = newValue);
           },
-          items: <String>['Regular', 'Priority']
-              .map<DropdownMenuItem<String>>(
-                (e) => DropdownMenuItem<String>(
+          items: ['Regular', 'Priority']
+              .map((e) => DropdownMenuItem(
                     value: e,
-                    child: Text(e, style: GoogleFonts.poppins(fontSize: 12))),
-              )
+                    child: Text(e, style: GoogleFonts.poppins(fontSize: 12)),
+                  ))
               .toList(),
         ),
       ),
@@ -588,86 +659,82 @@ class _FilterDropdownState extends State<FilterDropdown> {
   }
 }
 
-// Queue card widget
 class QueueCard extends StatelessWidget {
-  final String name;
-  final String queueID;
-  final String appointmentID;
-  final String serviceNeeded;
+  final int? queuenum;
+  final String appointmentnum;
+  final Timestamp appointmentdate;
+  final String purpose;
   final Color purpleMid;
+  final String userId;
 
   const QueueCard({
     super.key,
-    required this.name,
-    required this.queueID,
-    required this.appointmentID,
-    required this.serviceNeeded,
+    required this.queuenum,
+    required this.appointmentnum,
+    required this.appointmentdate,
+    required this.purpose,
     required this.purpleMid,
+    required this.userId,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: purpleMid.withOpacity(0.15),
-        border: Border.all(color: purpleMid),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            name,
-            style: GoogleFonts.poppins(
-              fontWeight: FontWeight.w600,
-              fontSize: 16,
-              color: purpleMid.darken(0.2),
-            ),
+    final date = appointmentdate.toDate();
+    final formattedDate = "${date.month}/${date.day}/${date.year}";
+    final formattedTime =
+        "${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}";
+
+    return FutureBuilder<DocumentSnapshot>(
+      future: FirebaseFirestore.instance.collection('users').doc(userId).get(),
+      builder: (context, snapshot) {
+        String customerName = "-";
+        if (snapshot.hasData && snapshot.data!.exists) {
+          final data = snapshot.data!.data() as Map<String, dynamic>? ?? {};
+          final fname = data['firstName'] ?? "";
+          final mid = data['middleInitial'] ?? "";
+          final lname = data['lastName'] ?? "";
+          customerName = "$fname${mid.isNotEmpty ? ' $mid' : ''} $lname".trim();
+        }
+
+        return Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: purpleMid.withOpacity(0.15),
+            border: Border.all(color: purpleMid),
+            borderRadius: BorderRadius.circular(12),
           ),
-          const SizedBox(height: 6),
-          InfoRowLabelValue(
-              label: "Queue ID:", value: queueID, purpleMid: purpleMid),
-          InfoRowLabelValue(
-              label: "Appointment ID:",
-              value: appointmentID,
-              purpleMid: purpleMid),
-          InfoRowLabelValue(
-              label: "Service Needed:",
-              value: serviceNeeded,
-              purpleMid: purpleMid),
-        ],
-      ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              InfoRow(label: "Queue Number:", value: queuenum?.toString() ?? "-"),
+              InfoRow(label: "Customer Name:", value: customerName),
+              InfoRow(label: "Appointment ID:", value: appointmentnum),
+              InfoRow(label: "Date:", value: formattedDate),
+              InfoRow(label: "Time:", value: formattedTime),
+              InfoRow(label: "Purpose:", value: purpose),
+            ],
+          ),
+        );
+      },
     );
   }
 }
 
-class InfoRowLabelValue extends StatelessWidget {
+class InfoRow extends StatelessWidget {
   final String label;
   final String value;
-  final Color purpleMid;
 
-  const InfoRowLabelValue({
-    super.key,
-    required this.label,
-    required this.value,
-    required this.purpleMid,
-  });
+  const InfoRow({super.key, required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 2),
+      padding: const EdgeInsets.only(bottom: 4),
       child: RichText(
         text: TextSpan(
-          style: GoogleFonts.poppins(
-            fontSize: 12,
-            color: Colors.black,
-          ),
+          style: GoogleFonts.poppins(fontSize: 12, color: Colors.black),
           children: [
-            TextSpan(
-                text: label,
-                style: const TextStyle(fontWeight: FontWeight.bold)),
+            TextSpan(text: label, style: const TextStyle(fontWeight: FontWeight.bold)),
             TextSpan(text: " $value"),
           ],
         ),
@@ -676,7 +743,6 @@ class InfoRowLabelValue extends StatelessWidget {
   }
 }
 
-// Detail row for info panel
 class DetailRow extends StatelessWidget {
   final String label;
   final String value;
@@ -693,74 +759,16 @@ class DetailRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label,
             style: GoogleFonts.poppins(
-              fontWeight: FontWeight.w700,
-              color: labelColor,
-              fontSize: 14,
-            ),
-          ),
-          Text(
-            value,
+                fontWeight: FontWeight.w700, color: labelColor, fontSize: 14)),
+        Text(value,
             style: GoogleFonts.poppins(
-              fontWeight: FontWeight.bold,
-              color: valueColor,
-              fontSize: 14,
-            ),
-          ),
-        ],
-      ),
+                fontWeight: FontWeight.bold, color: valueColor, fontSize: 14)),
+      ],
     );
-  }
-}
-
-// Purple styled button
-class PurpleButton extends StatelessWidget {
-  final String label;
-  final VoidCallback onPressed;
-  final Color purpleMid;
-
-  const PurpleButton({
-    super.key,
-    required this.label,
-    required this.onPressed,
-    required this.purpleMid,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: purpleMid,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        elevation: 0,
-      ),
-      onPressed: onPressed,
-      child: Text(
-        label,
-        style: GoogleFonts.poppins(
-          fontWeight: FontWeight.bold,
-          color: Colors.white,
-          fontSize: 14,
-        ),
-      ),
-    );
-  }
-}
-
-// Extension method to darken color
-extension ColorShading on Color {
-  Color darken([double amount = .1]) {
-    assert(amount >= 0 && amount <= 1);
-    final hsl = HSLColor.fromColor(this);
-    final hslDark = hsl.withLightness((hsl.lightness - amount).clamp(0.0, 1.0));
-    return hslDark.toColor();
   }
 }

@@ -67,7 +67,7 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Top gradient header
+              // Top header
               Container(
                 width: double.infinity,
                 decoration: const BoxDecoration(
@@ -118,7 +118,6 @@ class _HomePageState extends State<HomePage> {
                       ],
                     ),
                     const SizedBox(height: 10),
-                    // Greeting + image
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
@@ -181,14 +180,12 @@ class _HomePageState extends State<HomePage> {
                   ],
                 ),
               ),
-              // Body content
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 12),
-                    // Scheduled Appointments Section
                     Text(
                       "Scheduled Appointments",
                       style: GoogleFonts.poppins(
@@ -199,7 +196,6 @@ class _HomePageState extends State<HomePage> {
                     const SizedBox(height: 12),
                     _scheduledAppointments(),
                     const SizedBox(height: 24),
-                    // Recent Appointments Section
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -234,7 +230,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // Scheduled Appointments (All)
+  // Scheduled appointments
   Widget _scheduledAppointments() {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return const SizedBox();
@@ -243,16 +239,13 @@ class _HomePageState extends State<HomePage> {
       stream: FirebaseFirestore.instance
           .collection('appointments')
           .where('userId', isEqualTo: user.uid)
-          .where('status', isEqualTo: 'scheduled')
-          .orderBy('dateTime')
-          .snapshots(),
+          .snapshots(), // filter by user only
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
 
         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-          // ✅ Centered "no appointments" text to match AppointmentPage
           return const Center(
             child: Padding(
               padding: EdgeInsets.symmetric(vertical: 20),
@@ -265,13 +258,43 @@ class _HomePageState extends State<HomePage> {
           );
         }
 
+        // Filter scheduled appointments in Dart
+        final scheduledDocs = snapshot.data!.docs
+            .map((d) => d.data() as Map<String, dynamic>)
+            .where((data) => data['status'] == 'scheduled')
+            .toList();
+
+        if (scheduledDocs.isEmpty) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 20),
+              child: Text(
+                "No scheduled appointments yet.",
+                style: TextStyle(fontSize: 14, color: Colors.grey),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          );
+        }
+
+        // Sort by appointment date
+        scheduledDocs.sort((a, b) {
+          final aDate = a['appointmentdate'] is Timestamp
+              ? (a['appointmentdate'] as Timestamp).toDate()
+              : DateTime.tryParse(a['appointmentdate'].toString()) ??
+                  DateTime.now();
+          final bDate = b['appointmentdate'] is Timestamp
+              ? (b['appointmentdate'] as Timestamp).toDate()
+              : DateTime.tryParse(b['appointmentdate'].toString()) ??
+                  DateTime.now();
+          return aDate.compareTo(bDate);
+        });
+
         return Column(
-          children: snapshot.data!.docs.map((doc) {
-            final data = doc.data() as Map<String, dynamic>;
-            return _scheduledItem(
-              data['location'] ?? "Unknown Location",
-              data['dateTime'],
-              data['queueNumber']?.toString() ?? "-",
+          children: scheduledDocs.map((data) {
+            return _appointmentCard(
+              formatDateTime(data['appointmentdate']),
+              data['queuenum']?.toString() ?? "-",
             );
           }).toList(),
         );
@@ -279,10 +302,84 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _scheduledItem(String location, dynamic dateTime, String queueNumber) {
+  // Recent/completed appointments
+  Widget _recentAppointments() {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return const SizedBox();
+
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('appointments')
+          .where('userId', isEqualTo: user.uid)
+          .snapshots(), // filter by user only
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 20),
+              child: Text(
+                "No appointment history yet.",
+                style: TextStyle(fontSize: 14, color: Colors.grey),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          );
+        }
+
+        // Filter completed appointments in Dart
+        final completedDocs = snapshot.data!.docs
+            .map((d) => d.data() as Map<String, dynamic>)
+            .where((data) => data['status'] == 'completed')
+            .toList();
+
+        if (completedDocs.isEmpty) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 20),
+              child: Text(
+                "No appointment history yet.",
+                style: TextStyle(fontSize: 14, color: Colors.grey),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          );
+        }
+
+        // Sort descending by appointment date
+        completedDocs.sort((a, b) {
+          final aDate = a['appointmentdate'] is Timestamp
+              ? (a['appointmentdate'] as Timestamp).toDate()
+              : DateTime.tryParse(a['appointmentdate'].toString()) ??
+                  DateTime.now();
+          final bDate = b['appointmentdate'] is Timestamp
+              ? (b['appointmentdate'] as Timestamp).toDate()
+              : DateTime.tryParse(b['appointmentdate'].toString()) ??
+                  DateTime.now();
+          return bDate.compareTo(aDate);
+        });
+
+        return Column(
+          children: completedDocs.map((data) {
+            return _appointmentCard(
+              formatDateTime(data['appointmentdate']),
+              data['queuenum']?.toString() ?? "-",
+            );
+          }).toList(),
+        );
+      },
+    );
+  }
+
+  Widget _appointmentCard(String date, String queueNumber) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.2),
@@ -293,42 +390,23 @@ class _HomePageState extends State<HomePage> {
       ),
       padding: const EdgeInsets.all(16),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  location,
-                  style: GoogleFonts.poppins(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 6),
                 Row(
                   children: [
-                    const Icon(Icons.access_time, size: 18),
+                    const Icon(Icons.access_time, size: 18, color: Colors.grey),
                     const SizedBox(width: 4),
                     Text(
-                      formatDateTime(dateTime),
-                      style: GoogleFonts.poppins(fontSize: 14),
+                      date,
+                      style: GoogleFonts.poppins(
+                          fontSize: 14, color: Colors.grey[800]),
                     ),
                   ],
                 ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    const Icon(Icons.confirmation_number, size: 18),
-                    const SizedBox(width: 4),
-                    Text(
-                      queueNumber,
-                      style: GoogleFonts.poppins(fontSize: 14),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 12),
                 Row(
                   children: [
                     OutlinedButton(
@@ -342,9 +420,7 @@ class _HomePageState extends State<HomePage> {
                       child: Text(
                         "View",
                         style: GoogleFonts.poppins(
-                          color: Colors.purple,
-                          fontWeight: FontWeight.w500,
-                        ),
+                            color: Colors.purple, fontWeight: FontWeight.w500),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -359,9 +435,7 @@ class _HomePageState extends State<HomePage> {
                       child: Text(
                         "Edit",
                         style: GoogleFonts.poppins(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w500,
-                        ),
+                            color: Colors.white, fontWeight: FontWeight.w500),
                       ),
                     ),
                   ],
@@ -370,6 +444,7 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           Container(
+            margin: const EdgeInsets.only(left: 16),
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             decoration: BoxDecoration(
               border: Border.all(color: Colors.purple, width: 2),
@@ -378,14 +453,14 @@ class _HomePageState extends State<HomePage> {
             child: Column(
               children: [
                 Text(
-                  "Queue Number",
+                  "Queue",
                   style:
                       GoogleFonts.poppins(fontSize: 12, color: Colors.black87),
                 ),
                 Text(
                   queueNumber,
                   style: GoogleFonts.poppins(
-                    fontSize: 60,
+                    fontSize: 40,
                     fontWeight: FontWeight.bold,
                     color: Colors.purple,
                   ),
@@ -395,85 +470,6 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-    );
-  }
-
-  // Recent Appointments
-  Widget _recentAppointments() {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return const SizedBox();
-
-    return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection('appointments')
-          .where('userId', isEqualTo: user.uid)
-          .where('status', isEqualTo: 'completed')
-          .orderBy('dateTime', descending: true)
-          .snapshots(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-          // ✅ Centered "no history" text to match AppointmentPage
-          return const Center(
-            child: Padding(
-              padding: EdgeInsets.symmetric(vertical: 20),
-              child: Text(
-                "No appointment history yet.",
-                style: TextStyle(fontSize: 14, color: Colors.grey),
-                textAlign: TextAlign.center,
-              ),
-            ),
-          );
-        }
-
-        return Column(
-          children: snapshot.data!.docs.map((doc) {
-            final data = doc.data() as Map<String, dynamic>;
-            return _recentItem(
-              data['location'] ?? "Unknown Location",
-              formatDateTime(data['dateTime']),
-            );
-          }).toList(),
-        );
-      },
-    );
-  }
-
-  Widget _recentItem(String title, String date) {
-    return Column(
-      children: [
-        Row(
-          children: [
-            const Icon(Icons.location_on_outlined, color: Colors.purple),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: GoogleFonts.poppins(
-                      fontWeight: FontWeight.w500,
-                      fontSize: 15,
-                    ),
-                  ),
-                  Text(
-                    date,
-                    style: GoogleFonts.poppins(
-                      fontSize: 13,
-                      color: Colors.grey,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        const Divider(height: 20, thickness: 1, color: Color(0xFFE0E0E0)),
-      ],
     );
   }
 }

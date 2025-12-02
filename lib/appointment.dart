@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'set_appointment.dart';
 
 class AppointmentPage extends StatelessWidget {
   const AppointmentPage({super.key});
@@ -88,7 +89,7 @@ class AppointmentPage extends StatelessWidget {
                   height: 50,
                   child: OutlinedButton.icon(
                     onPressed: () {
-                      Navigator.of(context).pushNamed('/make_appointment');
+                      Navigator.of(context).pushNamed('set_appointment');
                     },
                     style: OutlinedButton.styleFrom(
                       side: const BorderSide(color: Color(0xFFD69ADE), width: 2),

@@ -54,11 +54,11 @@ class _RegisterState extends State<Register> {
   // Regex helpers
   final RegExp _lettersOnly = RegExp(r'^[A-Za-z\s]+$');
   final RegExp _singleLetter = RegExp(r'^[A-Za-z]$');
-  final RegExp _alnumSection = RegExp(r'^[A-Za-z0-9\s\-]+$');
+  // final RegExp _alnumSection = RegExp(r'^[A-Za-z0-9\s\-]+$');
   final RegExp _emailReg = RegExp(r"^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@"
       r"[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?"
       r"(?:\.[a-zA-Z]{2,})+$");
-  final RegExp _digitsOnly = RegExp(r'^\d+$');
+  // final RegExp _digitsOnly = RegExp(r'^\d+$');
 
   void _validateAll() {
     if (!mounted) return; // prevent setState if widget disposed
@@ -253,7 +253,7 @@ class _RegisterState extends State<Register> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
               Color.fromRGBO(234, 189, 230, 0.64),
