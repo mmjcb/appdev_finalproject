@@ -12,35 +12,40 @@ class SetAppointmentPage extends StatefulWidget {
 }
 
 class _SetAppointmentPageState extends State<SetAppointmentPage> {
-  final _locationController = TextEditingController();
-  DateTime? _selectedDateTime;
-  final _queueNumberController = TextEditingController();
+  final _purposeController = TextEditingController();
+  DateTime? _selectedAppointmentDate;
 
   @override
   void dispose() {
-    _locationController.dispose();
-    _queueNumberController.dispose();
+    _purposeController.dispose();
     super.dispose();
   }
 
-  Future<void> _pickDateTime() async {
+  Future<void> _pickAppointmentDate() async {
     final date = await showDatePicker(
       context: context,
       initialDate: DateTime.now().add(const Duration(days: 1)),
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 365)),
     );
+
     if (date == null) return;
 
     final time = await showTimePicker(
       context: context,
       initialTime: const TimeOfDay(hour: 9, minute: 0),
     );
+
     if (time == null) return;
 
     setState(() {
-      _selectedDateTime =
-          DateTime(date.year, date.month, date.day, time.hour, time.minute);
+      _selectedAppointmentDate = DateTime(
+        date.year,
+        date.month,
+        date.day,
+        time.hour,
+        time.minute,
+      );
     });
   }
 
@@ -48,9 +53,7 @@ class _SetAppointmentPageState extends State<SetAppointmentPage> {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
 
-    if (_locationController.text.isEmpty ||
-        _selectedDateTime == null ||
-        _queueNumberController.text.isEmpty) {
+    if (_purposeController.text.isEmpty || _selectedAppointmentDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Please fill all fields")),
       );
@@ -59,12 +62,11 @@ class _SetAppointmentPageState extends State<SetAppointmentPage> {
 
     try {
       await FirebaseFirestore.instance.collection('appointments').add({
-        'userId': user.uid,
-        'location': _locationController.text,
-        'dateTime': _selectedDateTime,
-        'queueNumber': int.tryParse(_queueNumberController.text) ?? 0,
-        'status': 'scheduled',
-        'createdAt': Timestamp.now(),
+        "appointmentnum": "SQ001",
+        "purpose": _purposeController.text,
+        "appointmentdate": Timestamp.fromDate(_selectedAppointmentDate!),
+        "createdAt": Timestamp.now(),
+        "userId": user.uid,
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -82,13 +84,14 @@ class _SetAppointmentPageState extends State<SetAppointmentPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: Colors.grey[50],
       body: SafeArea(
         child: Column(
           children: [
-            // Gradient Header (matches appointment.dart)
+            // Header
             Container(
               width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
@@ -103,12 +106,6 @@ class _SetAppointmentPageState extends State<SetAppointmentPage> {
                   bottomRight: Radius.circular(20),
                 ),
               ),
-              padding: const EdgeInsets.only(
-                top: 20,
-                left: 20,
-                right: 20,
-                bottom: 30,
-              ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -116,15 +113,13 @@ class _SetAppointmentPageState extends State<SetAppointmentPage> {
                     "Set Appointment",
                     style: GoogleFonts.poppins(
                       fontSize: 24,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w600,
                       color: Colors.white,
                     ),
                   ),
                   IconButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
                     icon: const Icon(Icons.close, color: Colors.white),
+                    onPressed: () => Navigator.pop(context),
                   ),
                 ],
               ),
@@ -133,63 +128,81 @@ class _SetAppointmentPageState extends State<SetAppointmentPage> {
             // Body
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(20),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    // Purpose Field
+                    Text(
+                      "Purpose",
+                      style: GoogleFonts.poppins(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 16,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
                     TextField(
-                      controller: _locationController,
+                      controller: _purposeController,
                       decoration: InputDecoration(
-                        labelText: "Location",
+                        hintText: "Enter purpose...",
+                        filled: true,
+                        fillColor: Colors.white,
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide.none,
                         ),
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton(
-                            onPressed: _pickDateTime,
-                            child: Text(
-                              _selectedDateTime == null
-                                  ? "Select Date & Time"
-                                  : DateFormat('MMM dd, yyyy - hh:mm a')
-                                      .format(_selectedDateTime!),
-                              style: GoogleFonts.poppins(),
-                            ),
-                          ),
-                        ),
-                      ],
+
+                    const SizedBox(height: 24),
+
+                    // Appointment Date & Time
+                    Text(
+                      "Appointment Date & Time",
+                      style: GoogleFonts.poppins(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 16,
+                      ),
                     ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: _queueNumberController,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        labelText: "Queue Number",
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
+                    const SizedBox(height: 6),
+                    GestureDetector(
+                      onTap: _pickAppointmentDate,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 16, horizontal: 14),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: Colors.grey.shade300),
+                        ),
+                        child: Text(
+                          _selectedAppointmentDate == null
+                              ? "Select appointment date & time"
+                              : DateFormat('MMM dd, yyyy - hh:mm a')
+                                  .format(_selectedAppointmentDate!),
+                          style: GoogleFonts.poppins(fontSize: 15),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 32),
+
+                    const SizedBox(height: 40),
+
+                    // Button
                     SizedBox(
-                      width: double.infinity,
+                      height: 50,
                       child: ElevatedButton(
                         onPressed: _saveAppointment,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.purple,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(14),
                           ),
                         ),
                         child: Text(
                           "Set Appointment",
                           style: GoogleFonts.poppins(
+                            fontSize: 17,
                             fontWeight: FontWeight.bold,
-                            fontSize: 16,
                             color: Colors.white,
                           ),
                         ),
@@ -198,7 +211,7 @@ class _SetAppointmentPageState extends State<SetAppointmentPage> {
                   ],
                 ),
               ),
-            ),
+            )
           ],
         ),
       ),

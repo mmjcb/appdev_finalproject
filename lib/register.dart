@@ -33,12 +33,6 @@ class _RegisterState extends State<Register> {
   final _dobController = TextEditingController();
   String? _selectedSex;
 
-  // School Info
-  final _collegeDeptController = TextEditingController();
-  final _programController = TextEditingController();
-  final _yearLevelController = TextEditingController();
-  final _sectionController = TextEditingController();
-
   // Error messages
   String _fnameError = '';
   String _lnameError = '';
@@ -50,10 +44,6 @@ class _RegisterState extends State<Register> {
   String _barangayError = '';
   String _municipalityError = '';
   String _cityProError = '';
-  String _collegeError = '';
-  String _programError = '';
-  String _yearLevelError = '';
-  String _sectionError = '';
   String _contactError = '';
   String _emailError = '';
   String _passwordError = '';
@@ -126,36 +116,6 @@ class _RegisterState extends State<Register> {
               ? 'City / Province is required'
               : '');
 
-      // School Info
-      final vCollege = _collegeDeptController.text.trim();
-      _collegeError = (!_lettersOnly.hasMatch(vCollege) && vCollege.isNotEmpty)
-          ? 'Only letters allowed'
-          : (vCollege.isEmpty && _submitted
-              ? 'College Department is required'
-              : '');
-
-      final vProgram = _programController.text.trim();
-      _programError = (!_lettersOnly.hasMatch(vProgram) && vProgram.isNotEmpty)
-          ? 'Only letters allowed'
-          : (vProgram.isEmpty && _submitted ? 'Program is required' : '');
-
-      final vYear = _yearLevelController.text.trim();
-      _yearLevelError = vYear.isNotEmpty && !_digitsOnly.hasMatch(vYear)
-          ? 'Must be numeric'
-          : (vYear.isEmpty && _submitted
-              ? 'Year level is required'
-              : (vYear.isNotEmpty &&
-                      (int.tryParse(vYear) == null ||
-                          int.parse(vYear) < 1 ||
-                          int.parse(vYear) > 9)
-                  ? 'Year level must be 1-9'
-                  : ''));
-
-      final vSection = _sectionController.text.trim();
-      _sectionError = (!_alnumSection.hasMatch(vSection) && vSection.isNotEmpty)
-          ? 'Only letters, numbers, spaces allowed'
-          : (vSection.isEmpty && _submitted ? 'Section is required' : '');
-
       // Account Info
       final vContact = _contactNumController.text.trim();
       _contactError =
@@ -192,10 +152,6 @@ class _RegisterState extends State<Register> {
       _barangayError,
       _municipalityError,
       _cityProError,
-      _collegeError,
-      _programError,
-      _yearLevelError,
-      _sectionError,
       _contactError,
       _emailError,
       _passwordError,
@@ -242,12 +198,6 @@ class _RegisterState extends State<Register> {
           'barangay': _barangayController.text.trim(),
           'municipality': _municipalityController.text.trim(),
           'cityProvince': _cityProController.text.trim(),
-        },
-        'schoolInfo': {
-          'collegeDepartment': _collegeDeptController.text.trim(),
-          'program': _programController.text.trim(),
-          'yearLevel': _yearLevelController.text.trim(),
-          'section': _sectionController.text.trim(),
         },
         'createdAt': FieldValue.serverTimestamp(),
       });
@@ -382,7 +332,7 @@ class _RegisterState extends State<Register> {
                                   TextFormField(
                                     controller: _midController,
                                     decoration: _thinBorderDecoration(
-                                        'M.I. (optional)'),
+                                        'M.I.'),
                                     onChanged: (_) => _validateAll(),
                                   ),
                                   _errorText(_midError),
@@ -573,74 +523,6 @@ class _RegisterState extends State<Register> {
                                   _errorText(_cityProError),
                                 ],
                               ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 25),
-
-                        // ================= SCHOOL INFO =================
-                        Text(
-                          'School Information',
-                          style: GoogleFonts.audiowide(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: const Color(0xFF543063)),
-                        ),
-                        const SizedBox(height: 10),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            TextFormField(
-                              controller: _collegeDeptController,
-                              decoration:
-                                  _thinBorderDecoration('College Department'),
-                              onChanged: (_) => _validateAll(),
-                            ),
-                            _errorText(_collegeError),
-                            const SizedBox(height: 10),
-                            TextFormField(
-                              controller: _programController,
-                              decoration:
-                                  _thinBorderDecoration('Program Enrolled'),
-                              onChanged: (_) => _validateAll(),
-                            ),
-                            _errorText(_programError),
-                            const SizedBox(height: 10),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      TextFormField(
-                                        controller: _yearLevelController,
-                                        decoration:
-                                            _thinBorderDecoration('Year Level'),
-                                        keyboardType: TextInputType.number,
-                                        onChanged: (_) => _validateAll(),
-                                      ),
-                                      _errorText(_yearLevelError),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      TextFormField(
-                                        controller: _sectionController,
-                                        decoration:
-                                            _thinBorderDecoration('Section'),
-                                        onChanged: (_) => _validateAll(),
-                                      ),
-                                      _errorText(_sectionError),
-                                    ],
-                                  ),
-                                ),
-                              ],
                             ),
                           ],
                         ),
