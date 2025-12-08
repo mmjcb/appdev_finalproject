@@ -4,12 +4,10 @@ import 'firebase_options.dart';
 
 import 'home.dart';
 import 'appointment.dart';
-import 'make_appointment.dart';
 import 'appointment_details.dart';
 import 'profile.dart';
 import 'login.dart';
 // import 'register.dart';
-
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -44,21 +42,18 @@ class MainPage extends StatefulWidget {
 class _MainPageState extends State<MainPage> {
   int _currentIndex = 0;
 
-  // Navigator key for the appointments tab 
-  final GlobalKey<NavigatorState> _appointmentNavKey = GlobalKey<NavigatorState>();
+  // Navigator key for the appointments tab
+  final GlobalKey<NavigatorState> _appointmentNavKey =
+      GlobalKey<NavigatorState>();
 
   late final List<Widget> _pages = [
     const HomePage(),
-
     Navigator(
       key: _appointmentNavKey,
       initialRoute: '/',
       onGenerateRoute: (RouteSettings settings) {
         Widget page;
         switch (settings.name) {
-          case '/make_appointment':
-            page = const MakeAppointmentPage();
-            break;
           case '/institution_details':
             final args = settings.arguments as Map<String, dynamic>?;
             page = AppointmentDetailsPage(
@@ -70,10 +65,12 @@ class _MainPageState extends State<MainPage> {
           default:
             page = const AppointmentPage();
         }
-        return MaterialPageRoute(builder: (context) => page, settings: settings);
+        return MaterialPageRoute(
+          builder: (context) => page,
+          settings: settings,
+        );
       },
     ),
-
     const ProfilePage(),
   ];
 
@@ -82,7 +79,6 @@ class _MainPageState extends State<MainPage> {
     return Scaffold(
       extendBody: true,
       body: _pages[_currentIndex],
-
       bottomNavigationBar: Container(
         margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         decoration: BoxDecoration(
@@ -112,8 +108,10 @@ class _MainPageState extends State<MainPage> {
             },
             items: const [
               BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-              BottomNavigationBarItem(icon: Icon(Icons.calendar_today), label: 'Appointments'),
-              BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+              BottomNavigationBarItem(
+                  icon: Icon(Icons.calendar_today), label: 'Appointments'),
+              BottomNavigationBarItem(
+                  icon: Icon(Icons.person), label: 'Profile'),
             ],
           ),
         ),

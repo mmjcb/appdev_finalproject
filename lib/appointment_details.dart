@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 class AppointmentDetailsPage extends StatelessWidget {
   final String institutionName;
-  final String institutionType; 
+  final String institutionType;
 
   const AppointmentDetailsPage({
     super.key,
@@ -14,12 +14,12 @@ class AppointmentDetailsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+        backgroundColor: Colors.grey[100],
+        body: SafeArea(
+            child: SingleChildScrollView(
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
               // Top gradient header
               Container(
                 width: double.infinity,
@@ -48,9 +48,7 @@ class AppointmentDetailsPage extends StatelessWidget {
                   children: [
                     GestureDetector(
                       onTap: () => Navigator.of(context).pop(),
-                      child: const Icon(
-                        Icons.arrow_back, 
-                        color: Colors.white),
+                      child: const Icon(Icons.arrow_back, color: Colors.white),
                     ),
                     Image.asset('assets/skipq-logo.png', height: 42),
                     Row(
@@ -92,7 +90,6 @@ class AppointmentDetailsPage extends StatelessWidget {
                         ),
                       ),
                     ),
-                    
                     TextButton(
                       onPressed: null,
                       style: TextButton.styleFrom(
@@ -138,7 +135,6 @@ class AppointmentDetailsPage extends StatelessWidget {
                         color: Colors.grey[600],
                       ),
                     ),
-                    
                     const SizedBox(height: 8),
                     Text(
                       institutionName,
@@ -152,10 +148,6 @@ class AppointmentDetailsPage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 30),
-            ]
-          )
-        )
-      )
-    );
+            ]))));
   }
 }

@@ -4,6 +4,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'set_appointment.dart';
+import 'appointment_delete.dart';
+import 'appointment_edit.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -58,6 +60,14 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  DateTime _parseFormattedDate(String dateStr) {
+    try {
+      return DateFormat('MMM dd, yyyy - hh:mm a').parse(dateStr);
+    } catch (e) {
+      return DateTime.now();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -67,7 +77,7 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Top header
+              // ------------------- HEADER -------------------
               Container(
                 width: double.infinity,
                 decoration: const BoxDecoration(
@@ -180,6 +190,8 @@ class _HomePageState extends State<HomePage> {
                   ],
                 ),
               ),
+
+              // ------------------- APPOINTMENTS -------------------
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -230,7 +242,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // Scheduled appointments
+  // ------------------- STREAMS -------------------
   Widget _scheduledAppointments() {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return const SizedBox();
@@ -239,45 +251,25 @@ class _HomePageState extends State<HomePage> {
       stream: FirebaseFirestore.instance
           .collection('appointments')
           .where('userId', isEqualTo: user.uid)
-          .snapshots(), // filter by user only
+          .snapshots(),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-          return const Center(
-            child: Padding(
-              padding: EdgeInsets.symmetric(vertical: 20),
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 20),
+            child: Center(
               child: Text(
                 "No scheduled appointments yet.",
                 style: TextStyle(fontSize: 14, color: Colors.grey),
-                textAlign: TextAlign.center,
               ),
             ),
           );
         }
 
-        // Filter scheduled appointments in Dart
         final scheduledDocs = snapshot.data!.docs
-            .map((d) => d.data() as Map<String, dynamic>)
+            .map((d) => d.data() as Map<String, dynamic>..['docId'] = d.id)
             .where((data) => data['status'] == 'scheduled')
             .toList();
 
-        if (scheduledDocs.isEmpty) {
-          return const Center(
-            child: Padding(
-              padding: EdgeInsets.symmetric(vertical: 20),
-              child: Text(
-                "No scheduled appointments yet.",
-                style: TextStyle(fontSize: 14, color: Colors.grey),
-                textAlign: TextAlign.center,
-              ),
-            ),
-          );
-        }
-
-        // Sort by appointment date
         scheduledDocs.sort((a, b) {
           final aDate = a['appointmentdate'] is Timestamp
               ? (a['appointmentdate'] as Timestamp).toDate()
@@ -291,18 +283,14 @@ class _HomePageState extends State<HomePage> {
         });
 
         return Column(
-          children: scheduledDocs.map((data) {
-            return _appointmentCard(
-              formatDateTime(data['appointmentdate']),
-              data['queuenum']?.toString() ?? "-",
-            );
-          }).toList(),
+          children: scheduledDocs
+              .map((data) => _appointmentCard(data: data))
+              .toList(),
         );
       },
     );
   }
 
-  // Recent/completed appointments
   Widget _recentAppointments() {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return const SizedBox();
@@ -311,45 +299,25 @@ class _HomePageState extends State<HomePage> {
       stream: FirebaseFirestore.instance
           .collection('appointments')
           .where('userId', isEqualTo: user.uid)
-          .snapshots(), // filter by user only
+          .snapshots(),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-          return const Center(
-            child: Padding(
-              padding: EdgeInsets.symmetric(vertical: 20),
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 20),
+            child: Center(
               child: Text(
                 "No appointment history yet.",
                 style: TextStyle(fontSize: 14, color: Colors.grey),
-                textAlign: TextAlign.center,
               ),
             ),
           );
         }
 
-        // Filter completed appointments in Dart
         final completedDocs = snapshot.data!.docs
-            .map((d) => d.data() as Map<String, dynamic>)
+            .map((d) => d.data() as Map<String, dynamic>..['docId'] = d.id)
             .where((data) => data['status'] == 'completed')
             .toList();
 
-        if (completedDocs.isEmpty) {
-          return const Center(
-            child: Padding(
-              padding: EdgeInsets.symmetric(vertical: 20),
-              child: Text(
-                "No appointment history yet.",
-                style: TextStyle(fontSize: 14, color: Colors.grey),
-                textAlign: TextAlign.center,
-              ),
-            ),
-          );
-        }
-
-        // Sort descending by appointment date
         completedDocs.sort((a, b) {
           final aDate = a['appointmentdate'] is Timestamp
               ? (a['appointmentdate'] as Timestamp).toDate()
@@ -363,23 +331,30 @@ class _HomePageState extends State<HomePage> {
         });
 
         return Column(
-          children: completedDocs.map((data) {
-            return _appointmentCard(
-              formatDateTime(data['appointmentdate']),
-              data['queuenum']?.toString() ?? "-",
-            );
-          }).toList(),
+          children: completedDocs
+              .map((data) => _appointmentCard(data: data))
+              .toList(),
         );
       },
     );
   }
 
-  Widget _appointmentCard(String date, String queueNumber) {
+  // ------------------- APPOINTMENT CARD -------------------
+  Widget _appointmentCard({
+    required Map<String, dynamic> data,
+  }) {
+    String title = data['purpose'] ?? '';
+    String date = formatDateTime(data['appointmentdate']);
+    String code = data['appointmentnum'] ?? '';
+    String queueNumber = data['queuenum']?.toString() ?? "-";
+    String? docId = data['docId'];
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.2),
@@ -388,54 +363,79 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      padding: const EdgeInsets.all(16),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Text(title,
+                    style: GoogleFonts.poppins(
+                        fontSize: 20, fontWeight: FontWeight.w600)),
+                const SizedBox(height: 6),
                 Row(
                   children: [
-                    const Icon(Icons.access_time, size: 18, color: Colors.grey),
+                    const Icon(Icons.access_time, size: 18),
                     const SizedBox(width: 4),
-                    Text(
-                      date,
-                      style: GoogleFonts.poppins(
-                          fontSize: 14, color: Colors.grey[800]),
-                    ),
+                    Text(date, style: GoogleFonts.poppins(fontSize: 14)),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    const Icon(Icons.confirmation_number, size: 18),
+                    const SizedBox(width: 4),
+                    Text(code, style: GoogleFonts.poppins(fontSize: 14)),
                   ],
                 ),
                 const SizedBox(height: 12),
+
+                // EDIT & DELETE BUTTONS
                 Row(
                   children: [
-                    OutlinedButton(
-                      onPressed: () {},
+                    OutlinedButton.icon(
+                      onPressed: () {
+                        if (docId != null) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => AppointmentEditPage(
+                                docId: docId,
+                                data: data,
+                              ),
+                            ),
+                          );
+                        }
+                      },
+                      icon: const Icon(Icons.edit, size: 18),
+                      label: Text("Edit",
+                          style: GoogleFonts.poppins(fontSize: 14)),
                       style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Colors.purple),
+                        side: const BorderSide(color: Colors.blue, width: 1.5),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                      ),
-                      child: Text(
-                        "View",
-                        style: GoogleFonts.poppins(
-                            color: Colors.purple, fontWeight: FontWeight.w500),
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    ElevatedButton(
-                      onPressed: () {},
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.purple,
+                    const SizedBox(width: 12),
+                    OutlinedButton.icon(
+                      onPressed: () {
+                        if (docId != null) {
+                          AppointmentDelete.deleteAppointment(
+                              context: context, docId: docId);
+                        }
+                      },
+                      icon:
+                          const Icon(Icons.delete, size: 18, color: Colors.red),
+                      label: Text("Delete",
+                          style: GoogleFonts.poppins(
+                              fontSize: 14, color: Colors.red)),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Colors.red, width: 1.5),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                      ),
-                      child: Text(
-                        "Edit",
-                        style: GoogleFonts.poppins(
-                            color: Colors.white, fontWeight: FontWeight.w500),
                       ),
                     ),
                   ],
@@ -443,27 +443,27 @@ class _HomePageState extends State<HomePage> {
               ],
             ),
           ),
+
+          // QUEUE NUMBER BOX
           Container(
             margin: const EdgeInsets.only(left: 16),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 10),
             decoration: BoxDecoration(
               border: Border.all(color: Colors.purple, width: 2),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(
-                  "Queue",
-                  style:
-                      GoogleFonts.poppins(fontSize: 12, color: Colors.black87),
-                ),
-                Text(
-                  queueNumber,
-                  style: GoogleFonts.poppins(
-                    fontSize: 40,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.purple,
-                  ),
+                Text("Queue",
+                    style: GoogleFonts.poppins(
+                        fontSize: 12, color: Colors.black87)),
+                FittedBox(
+                  child: Text(queueNumber,
+                      style: GoogleFonts.poppins(
+                          fontSize: 60,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.purple)),
                 ),
               ],
             ),
