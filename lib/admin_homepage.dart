@@ -21,6 +21,15 @@ class AdminHomePage extends StatefulWidget {
 }
 
 class _AdminHomePageState extends State<AdminHomePage> {
+
+  String? selectedAppointmentNum;
+  String? selectedPurpose;
+  int? selectedQueueNum;
+  Timestamp? selectedAppointmentDate;
+  String? selectedUserId;
+
+  
+
   // --- Style Constants ---
   static const Color gradientStart = Color.fromARGB(162, 234, 189, 230);
   static const Color gradientEnd = Color(0xFFD69ADE);
@@ -31,35 +40,39 @@ class _AdminHomePageState extends State<AdminHomePage> {
   String activePage = "Home";
 
   void _handleQueueCardTap({
-    required String userId,
-    required String appointmentNum,
-    required String purpose,
-    required int queueNum,
-    required Timestamp appointmentDate,
-  }) async {
-    // 1. Log the selection (optional, for debugging)
-    print('Queue Card Tapped: Appointment $appointmentNum, Queue $queueNum');
+  required String userId,
+  required String appointmentNum,
+  required String purpose,
+  required int queueNum,
+  required Timestamp appointmentDate,
+}) async {
+  // Update UI immediately
+  setState(() {
+    selectedUserId = userId;
+    selectedAppointmentNum = appointmentNum;
+    selectedPurpose = purpose;
+    selectedQueueNum = queueNum;
+    selectedAppointmentDate = appointmentDate;
+  });
 
-    // 2. Update the 'teller3' document in Firestore
-    try {
-      await FirebaseFirestore.instance
-          .collection('tellers')
-          .doc('teller3')
-          .update({
-        'currentUserId': userId,
-        'currentAppointment': appointmentNum,
-        'purpose': purpose,
-        'currentQueue': queueNum,
-        'appointmentDate':
-            appointmentDate, // Storing the Timestamp for the right panel
-      });
-      // The _buildTellerInfoPanelDesktop StreamBuilder will automatically update the UI
-    } catch (e) {
-      print('Error updating teller status: $e');
-      // Optionally show a snackbar error to the user
-    }
+  print('Queue Card Tapped: Appointment $appointmentNum, Queue $queueNum');
+
+  // Optional: Update Firestore (you can keep this)
+  try {
+    await FirebaseFirestore.instance
+        .collection('tellers')
+        .doc('teller3')
+        .set({
+      'currentUserId': userId,
+      'currentAppointment': appointmentNum,
+      'purpose': purpose,
+      'currentQueue': queueNum,
+      'appointmentDate': appointmentDate,
+    }, SetOptions(merge: true)); // merge ensures it won't overwrite existing fields
+  } catch (e) {
+    print('Error saving teller status: $e');
   }
-
+}
   // ------------------------------------
   // --- FIXED: REQUIRED BUILD METHOD ---
   // ------------------------------------
