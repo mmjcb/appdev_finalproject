@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'set_appointment.dart';
 import 'appointment_delete.dart';
 import 'appointment_edit.dart';
+import 'appointment_view.dart'; // AppointmentViewModal
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -31,7 +32,6 @@ class _HomePageState extends State<HomePage> {
             .collection('users')
             .doc(user.uid)
             .get();
-
         if (doc.exists) {
           setState(() {
             firstName = doc.data()?['firstName'] ?? "User";
@@ -51,20 +51,14 @@ class _HomePageState extends State<HomePage> {
         dt = dateTime.toDate();
       } else if (dateTime is String) {
         dt = DateTime.parse(dateTime);
+      } else if (dateTime is DateTime) {
+        dt = dateTime;
       } else {
         return dateTime.toString();
       }
       return DateFormat('MMM dd, yyyy - hh:mm a').format(dt);
     } catch (e) {
       return dateTime.toString();
-    }
-  }
-
-  DateTime _parseFormattedDate(String dateStr) {
-    try {
-      return DateFormat('MMM dd, yyyy - hh:mm a').parse(dateStr);
-    } catch (e) {
-      return DateTime.now();
     }
   }
 
@@ -77,121 +71,7 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ------------------- HEADER -------------------
-              Container(
-                width: double.infinity,
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      Color.fromARGB(162, 234, 189, 230),
-                      Color(0xFFD69ADE),
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(20),
-                    bottomRight: Radius.circular(20),
-                  ),
-                ),
-                padding: const EdgeInsets.only(
-                  top: 20,
-                  left: 20,
-                  right: 20,
-                  bottom: 30,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Image.asset('assets/skipq-logo.png', height: 42),
-                        Row(
-                          children: [
-                            IconButton(
-                              onPressed: () {},
-                              icon: const Icon(
-                                Icons.notifications_none,
-                                color: Colors.white,
-                              ),
-                            ),
-                            IconButton(
-                              onPressed: () {},
-                              icon: const Icon(
-                                Icons.settings,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                "Hello, $firstName!",
-                                style: GoogleFonts.poppins(
-                                  fontSize: 40,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black,
-                                ),
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                "What are we doing today?",
-                                style: GoogleFonts.poppins(
-                                  fontSize: 20,
-                                  color: Colors.black,
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                              ElevatedButton(
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          const SetAppointmentPage(),
-                                    ),
-                                  );
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 20,
-                                    vertical: 10,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  elevation: 0,
-                                ),
-                                child: Text(
-                                  "Set an Appointment",
-                                  style: GoogleFonts.poppins(
-                                    color: Colors.purple[700],
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Image.asset('assets/bunny-home.png', height: 200),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-
-              // ------------------- APPOINTMENTS -------------------
+              _header(),
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -238,6 +118,121 @@ class _HomePageState extends State<HomePage> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  // ------------------- HEADER -------------------
+  Widget _header() {
+    return Container(
+      width: double.infinity,
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Color.fromARGB(162, 234, 189, 230),
+            Color(0xFFD69ADE),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(20),
+          bottomRight: Radius.circular(20),
+        ),
+      ),
+      padding: const EdgeInsets.only(
+        top: 20,
+        left: 20,
+        right: 20,
+        bottom: 30,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Image.asset('assets/skipq-logo.png', height: 42),
+              Row(
+                children: [
+                  IconButton(
+                    onPressed: () {},
+                    icon: const Icon(
+                      Icons.notifications_none,
+                      color: Colors.white,
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () {},
+                    icon: const Icon(
+                      Icons.settings,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Hello, $firstName!",
+                      style: GoogleFonts.poppins(
+                        fontSize: 40,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      "What are we doing today?",
+                      style: GoogleFonts.poppins(
+                        fontSize: 20,
+                        color: Colors.black,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const SetAppointmentPage(),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 10,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: Text(
+                        "Set an Appointment",
+                        style: GoogleFonts.poppins(
+                          color: Colors.purple[700],
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Image.asset('assets/bunny-home.png', height: 200),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -340,9 +335,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   // ------------------- APPOINTMENT CARD -------------------
-  Widget _appointmentCard({
-    required Map<String, dynamic> data,
-  }) {
+  Widget _appointmentCard({required Map<String, dynamic> data}) {
     String title = data['purpose'] ?? '';
     String date = formatDateTime(data['appointmentdate']);
     String code = data['appointmentnum'] ?? '';
@@ -391,34 +384,37 @@ class _HomePageState extends State<HomePage> {
                 ),
                 const SizedBox(height: 12),
 
-                // EDIT & DELETE BUTTONS
+                // ------------------- BUTTONS -------------------
                 Row(
                   children: [
+                    // Edit
                     OutlinedButton.icon(
                       onPressed: () {
                         if (docId != null) {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => AppointmentEditPage(
-                                docId: docId,
-                                data: data,
-                              ),
+                              builder: (context) =>
+                                  AppointmentEditPage(docId: docId, data: data),
                             ),
                           );
                         }
                       },
-                      icon: const Icon(Icons.edit, size: 18),
+                      icon: const Icon(Icons.edit, size: 16),
                       label: Text("Edit",
-                          style: GoogleFonts.poppins(fontSize: 14)),
+                          style: GoogleFonts.poppins(fontSize: 12)),
                       style: OutlinedButton.styleFrom(
                         side: const BorderSide(color: Colors.blue, width: 1.5),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
+                        minimumSize: const Size(50, 30),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 8),
+                    // Delete
                     OutlinedButton.icon(
                       onPressed: () {
                         if (docId != null) {
@@ -427,15 +423,54 @@ class _HomePageState extends State<HomePage> {
                         }
                       },
                       icon:
-                          const Icon(Icons.delete, size: 18, color: Colors.red),
+                          const Icon(Icons.delete, size: 16, color: Colors.red),
                       label: Text("Delete",
                           style: GoogleFonts.poppins(
-                              fontSize: 14, color: Colors.red)),
+                              fontSize: 12, color: Colors.red)),
                       style: OutlinedButton.styleFrom(
                         side: const BorderSide(color: Colors.red, width: 1.5),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
+                        minimumSize: const Size(50, 30),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    // View (Modal)
+                    OutlinedButton.icon(
+                      onPressed: () {
+                        if (docId != null) {
+                          showDialog(
+                            context: context,
+                            barrierColor:
+                                Colors.black54, // semi-transparent black
+                            builder: (_) => Center(
+                              child: SingleChildScrollView(
+                                child: Dialog(
+                                  backgroundColor: Colors.transparent,
+                                  insetPadding: const EdgeInsets.symmetric(
+                                      horizontal: 20, vertical: 40),
+                                  child: AppointmentViewModal(docId: docId),
+                                ),
+                              ),
+                            ),
+                          );
+                        }
+                      },
+                      icon: const Icon(Icons.remove_red_eye, size: 16),
+                      label: Text("View",
+                          style: GoogleFonts.poppins(fontSize: 12)),
+                      style: OutlinedButton.styleFrom(
+                        side:
+                            const BorderSide(color: Colors.purple, width: 1.5),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
+                        minimumSize: const Size(50, 30),
                       ),
                     ),
                   ],

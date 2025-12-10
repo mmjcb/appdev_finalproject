@@ -4,6 +4,15 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'admin_queues.dart';
 import 'admin_archives.dart';
 
+// Define a type for the QueueCard's callback function
+typedef QueueCardTapCallback = void Function({
+  required String userId,
+  required String appointmentNum,
+  required String purpose,
+  required int queueNum,
+  required Timestamp appointmentDate,
+});
+
 class AdminHomePage extends StatefulWidget {
   const AdminHomePage({super.key});
 
@@ -12,6 +21,7 @@ class AdminHomePage extends StatefulWidget {
 }
 
 class _AdminHomePageState extends State<AdminHomePage> {
+  // --- Style Constants ---
   static const Color gradientStart = Color.fromARGB(162, 234, 189, 230);
   static const Color gradientEnd = Color(0xFFD69ADE);
   static const Color purpleDark = Color(0xFF4B367C);
@@ -19,6 +29,40 @@ class _AdminHomePageState extends State<AdminHomePage> {
   static const Color purpleLight = Color(0xFFCBBAE0);
 
   String activePage = "Home";
+
+  void _handleQueueCardTap({
+    required String userId,
+    required String appointmentNum,
+    required String purpose,
+    required int queueNum,
+    required Timestamp appointmentDate,
+  }) async {
+    // 1. Log the selection (optional, for debugging)
+    print('Queue Card Tapped: Appointment $appointmentNum, Queue $queueNum');
+
+    // 2. Update the 'teller3' document in Firestore
+    try {
+      await FirebaseFirestore.instance
+          .collection('tellers')
+          .doc('teller3')
+          .update({
+        'currentUserId': userId,
+        'currentAppointment': appointmentNum,
+        'purpose': purpose,
+        'currentQueue': queueNum,
+        'appointmentDate':
+            appointmentDate, // Storing the Timestamp for the right panel
+      });
+      // The _buildTellerInfoPanelDesktop StreamBuilder will automatically update the UI
+    } catch (e) {
+      print('Error updating teller status: $e');
+      // Optionally show a snackbar error to the user
+    }
+  }
+
+  // ------------------------------------
+  // --- FIXED: REQUIRED BUILD METHOD ---
+  // ------------------------------------
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +76,14 @@ class _AdminHomePageState extends State<AdminHomePage> {
     );
   }
 
-  // ------------------- MOBILE LAYOUT -------------------
+  // ------------------------------------
+  // --- MOBILE LAYOUT BUILDERS (omitted for brevity, assume they are correct) ---
+  // ------------------------------------
+
+  // NOTE: The rest of _buildMobileLayout, _buildMobileDrawer,
+  // _buildServingCardContent, and _buildTellerInfoCard remain the same
+  // as the previous corrected version.
+
   Widget _buildMobileLayout(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[100],
@@ -84,6 +135,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
                     ],
                   ),
                   const SizedBox(height: 16),
+                  // Mobile Queue List Fetcher
                   StreamBuilder<QuerySnapshot>(
                     stream: FirebaseFirestore.instance
                         .collection('appointments')
@@ -102,7 +154,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
 
                           final queueNumber = index + 1;
 
-                          // Update Firestore only if queue number has changed
+                          // Update 'queuenum' based on current index
                           if (doc['queuenum'] != queueNumber) {
                             FirebaseFirestore.instance
                                 .collection('appointments')
@@ -119,6 +171,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
                               purpose: doc['purpose'],
                               purpleMid: purpleMid,
                               userId: doc['userId'],
+                              onTap: _handleQueueCardTap,
                             ),
                           );
                         }).toList(),
@@ -156,12 +209,12 @@ class _AdminHomePageState extends State<AdminHomePage> {
                   style: GoogleFonts.poppins(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
-                    color: Colors.purple,
+                    color: purpleDark,
                   ),
                 ),
               ),
             ),
-            const SizedBox(height: 40),
+            const SizedBox(height: 50),
             SidebarItem(
               icon: Icons.home,
               label: "Home",
@@ -204,7 +257,80 @@ class _AdminHomePageState extends State<AdminHomePage> {
     );
   }
 
+  Widget _buildServingCardContent(
+    BuildContext context, {
+    required dynamic currentQueue,
+    required dynamic currentAppointment,
+    required dynamic purpose,
+    required String customerName,
+  }) {
+    // Mobile card layout
+    return Container(
+      width: double.infinity,
+      color: purpleDark,
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        children: [
+          const SizedBox(height: 8),
+          Text(
+            "NOW SERVING",
+            style: GoogleFonts.poppins(
+              color: purpleLight,
+              fontWeight: FontWeight.bold,
+              fontSize: 20,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            currentQueue.toString(),
+            style: GoogleFonts.poppins(
+              color: Colors.white70,
+              fontWeight: FontWeight.w600,
+              fontSize: 20,
+            ),
+          ),
+          const SizedBox(height: 20),
+          DetailRow(
+              label: "Customer Name",
+              value: customerName,
+              labelColor: purpleLight,
+              valueColor: Colors.white),
+          const SizedBox(height: 16),
+          DetailRow(
+              label: "Appointment ID",
+              value: currentAppointment.toString(),
+              labelColor: purpleLight,
+              valueColor: Colors.white),
+          const SizedBox(height: 16),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              "Purpose of Appointment",
+              style: GoogleFonts.poppins(
+                color: purpleLight,
+                fontWeight: FontWeight.w700,
+                fontSize: 14,
+              ),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              purpose,
+              style: GoogleFonts.poppins(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 16),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildTellerInfoCard() {
+    // Mobile Teller Info Fetcher
     return StreamBuilder<DocumentSnapshot>(
       stream: FirebaseFirestore.instance
           .collection('tellers')
@@ -221,6 +347,16 @@ class _AdminHomePageState extends State<AdminHomePage> {
         final currentAppointment = data['currentAppointment'] ?? "-";
         final purpose = data['purpose'] ?? "-";
         final userId = data['currentUserId'] ?? "";
+
+        if (userId.isEmpty) {
+          return _buildServingCardContent(
+            context,
+            currentQueue: currentQueue,
+            currentAppointment: currentAppointment,
+            purpose: purpose,
+            customerName: "-",
+          );
+        }
 
         return FutureBuilder<DocumentSnapshot>(
           future:
@@ -240,67 +376,12 @@ class _AdminHomePageState extends State<AdminHomePage> {
                       .trim();
             }
 
-            return Container(
-              width: double.infinity,
-              color: purpleDark,
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                children: [
-                  const SizedBox(height: 8),
-                  Text(
-                    "NOW SERVING",
-                    style: GoogleFonts.poppins(
-                      color: purpleLight,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 20,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    currentQueue.toString(),
-                    style: GoogleFonts.poppins(
-                      color: Colors.white70,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 20,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  DetailRow(
-                      label: "Customer Name",
-                      value: customerName,
-                      labelColor: purpleLight,
-                      valueColor: Colors.white),
-                  const SizedBox(height: 16),
-                  DetailRow(
-                      label: "Appointment ID",
-                      value: currentAppointment.toString(),
-                      labelColor: purpleLight,
-                      valueColor: Colors.white),
-                  const SizedBox(height: 16),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      "Purpose of Appointment",
-                      style: GoogleFonts.poppins(
-                        color: purpleLight,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      purpose,
-                      style: GoogleFonts.poppins(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 16),
-                    ),
-                  ),
-                ],
-              ),
+            return _buildServingCardContent(
+              context,
+              currentQueue: currentQueue,
+              currentAppointment: currentAppointment,
+              purpose: purpose,
+              customerName: customerName,
             );
           },
         );
@@ -308,7 +389,10 @@ class _AdminHomePageState extends State<AdminHomePage> {
     );
   }
 
-  // ------------------- DESKTOP LAYOUT -------------------
+  // ------------------------------------
+  // --- DESKTOP LAYOUT BUILDERS ---
+  // ------------------------------------
+
   Widget _buildDesktopLayout(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[100],
@@ -360,8 +444,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
                         setState(() => activePage = "Queues");
                         Navigator.push(
                           context,
-                          MaterialPageRoute(
-                              builder: (_) => const QueuesPage()),
+                          MaterialPageRoute(builder: (_) => const QueuesPage()),
                         );
                       }),
                   SidebarItem(
@@ -389,7 +472,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
                 ],
               ),
             ),
-            // Middle panel
+            // Middle panel (Queue List)
             Expanded(
               flex: 3,
               child: Container(
@@ -424,6 +507,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
                     ),
                     const SizedBox(height: 14),
                     Expanded(
+                      // Desktop Queue List Fetcher
                       child: StreamBuilder<QuerySnapshot>(
                         stream: FirebaseFirestore.instance
                             .collection('appointments')
@@ -460,6 +544,8 @@ class _AdminHomePageState extends State<AdminHomePage> {
                                   purpose: doc['purpose'],
                                   purpleMid: purpleMid,
                                   userId: doc['userId'],
+                                  // Pass the handler for click functionality
+                                  onTap: _handleQueueCardTap,
                                 ),
                               );
                             }).toList(),
@@ -471,7 +557,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
                 ),
               ),
             ),
-            // Right panel
+            // Right panel (Now Serving)
             Expanded(flex: 2, child: _buildTellerInfoPanelDesktop()),
           ],
         ),
@@ -479,6 +565,235 @@ class _AdminHomePageState extends State<AdminHomePage> {
     );
   }
 
+  // --- DESKTOP NOW SERVING PANEL CONTENT (REDESIGNED) ---
+  Widget _buildServingPanelContentDesktop(
+    BuildContext context, {
+    required dynamic currentQueue,
+    required dynamic currentAppointment,
+    required dynamic purpose,
+    required String customerName,
+    required dynamic rawAppointmentDate,
+  }) {
+    String formattedDate = '-';
+    String formattedTime = '-';
+
+    if (rawAppointmentDate is Timestamp) {
+      final date = rawAppointmentDate.toDate();
+      formattedDate =
+          "${date.day}/${date.month}/${date.year}"; // Format: DD/MM/YYYY
+      formattedTime =
+          "${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')} ${date.hour >= 12 ? 'PM' : 'AM'}";
+    }
+
+    // Check if a customer is actually being served
+    final isServing = customerName != "-";
+
+    return Container(
+      decoration: BoxDecoration(
+        color: purpleDark,
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(20),
+          bottomLeft: Radius.circular(20),
+        ),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 48),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // NOW SERVING Header
+          const SizedBox(height: 12),
+          Text(
+            "NOW SERVING!",
+            textAlign: TextAlign.center,
+            style: GoogleFonts.poppins(
+              color: purpleLight,
+              fontWeight: FontWeight.bold,
+              fontSize: 24,
+            ),
+          ),
+          const SizedBox(height: 48),
+
+          // Customer Name (DEN SUBOSA)
+          Text(
+            customerName,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.poppins(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 32,
+            ),
+          ),
+          const SizedBox(height: 4),
+
+          // Appointment ID (SQ0021)
+          Text(
+            currentAppointment.toString(),
+            textAlign: TextAlign.center,
+            style: GoogleFonts.poppins(
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+              fontSize: 24,
+            ),
+          ),
+          const SizedBox(height: 40),
+
+          // Details Section (Purpose, Date, Time)
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                flex: 2,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Purpose
+                    Text(
+                      purpose.toString(),
+                      style: GoogleFonts.poppins(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 18),
+                    ),
+                    Text(
+                      "Purpose",
+                      style: GoogleFonts.poppins(
+                          color: purpleLight,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 12),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Date
+                    Text(
+                      formattedDate,
+                      style: GoogleFonts.poppins(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 18),
+                    ),
+                    Text(
+                      "Date",
+                      style: GoogleFonts.poppins(
+                          color: purpleLight,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 12),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Time
+                    Text(
+                      formattedTime,
+                      style: GoogleFonts.poppins(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 18),
+                    ),
+                    Text(
+                      "Time",
+                      style: GoogleFonts.poppins(
+                          color: purpleLight,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 20),
+
+              // Queue Number Badge (9)
+              Expanded(
+                flex: 1,
+                child: Container(
+                  height: 120,
+                  decoration: BoxDecoration(
+                    color: purpleLight,
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        currentQueue.toString(),
+                        style: GoogleFonts.poppins(
+                          color: purpleDark,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 60,
+                          height: 1, // Minimize vertical space
+                        ),
+                      ),
+                      Text(
+                        "Queue Number",
+                        style: GoogleFonts.poppins(
+                          color: purpleDark,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 10,
+                          height: 1, // Minimize vertical space
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          const Spacer(),
+
+          // Action Buttons (Only show if a customer is being served)
+          if (isServing)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                // Cancel Button
+                SizedBox(
+                  width: 120,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      // TODO: Implement cancel logic
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red[400],
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: Text('Cancel',
+                        style: GoogleFonts.poppins(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white)),
+                  ),
+                ),
+                // Next Button
+                SizedBox(
+                  width: 120,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      // TODO: Implement 'Next' serving logic
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: purpleMid,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: Text('Next',
+                        style: GoogleFonts.poppins(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white)),
+                  ),
+                ),
+              ],
+            ),
+        ],
+      ),
+    );
+  }
+
+  // Desktop Teller Info Fetcher
   Widget _buildTellerInfoPanelDesktop() {
     return StreamBuilder<DocumentSnapshot>(
       stream: FirebaseFirestore.instance
@@ -486,85 +801,53 @@ class _AdminHomePageState extends State<AdminHomePage> {
           .doc('teller3')
           .snapshots(),
       builder: (context, snapshot) {
-        if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+        if (!snapshot.hasData)
+          return const Center(child: CircularProgressIndicator());
 
         final data = snapshot.data!.data() as Map<String, dynamic>? ?? {};
         final currentQueue = data['currentQueue'] ?? "-";
         final currentAppointment = data['currentAppointment'] ?? "-";
         final purpose = data['purpose'] ?? "-";
         final userId = data['currentUserId'] ?? "";
+        final appointmentDate = data['appointmentDate'] ?? null;
+
+        if (userId.isEmpty) {
+          // Default state when no one is being served
+          return _buildServingPanelContentDesktop(
+            context,
+            currentQueue: currentQueue,
+            currentAppointment: currentAppointment,
+            purpose: purpose,
+            customerName: "-",
+            rawAppointmentDate: appointmentDate,
+          );
+        }
 
         return FutureBuilder<DocumentSnapshot>(
-          future: FirebaseFirestore.instance.collection('users').doc(userId).get(),
+          future:
+              FirebaseFirestore.instance.collection('users').doc(userId).get(),
           builder: (context, userSnapshot) {
             String customerName = "-";
             if (userSnapshot.hasData && userSnapshot.data!.exists) {
-              final userData = userSnapshot.data!.data() as Map<String, dynamic>? ?? {};
+              final userData =
+                  userSnapshot.data!.data() as Map<String, dynamic>? ?? {};
               final firstName = userData['firstName'] ?? "";
               final middleInitial = userData['middleInitial'] ?? "";
               final lastName = userData['lastName'] ?? "";
               final ext = userData['ext'] ?? "";
 
               customerName =
-                  "$firstName${middleInitial.isNotEmpty ? ' $middleInitial' : ''} $lastName${ext.isNotEmpty ? ', $ext' : ''}".trim();
+                  "$firstName${middleInitial.isNotEmpty ? ' $middleInitial' : ''} $lastName${ext.isNotEmpty ? ', $ext' : ''}"
+                      .trim();
             }
 
-            return Container(
-              decoration: BoxDecoration(
-                color: purpleDark,
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(20),
-                  bottomLeft: Radius.circular(20),
-                ),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 48),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  const SizedBox(height: 12),
-                  Text("NOW SERVING",
-                      style: GoogleFonts.poppins(
-                          color: purpleLight,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 24)),
-                  const SizedBox(height: 16),
-                  Text(currentQueue.toString(),
-                      style: GoogleFonts.poppins(
-                          color: Colors.white70,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 22)),
-                  const SizedBox(height: 16),
-                  DetailRow(
-                      label: "Customer Name",
-                      value: customerName,
-                      labelColor: purpleLight,
-                      valueColor: Colors.white),
-                  const SizedBox(height: 16),
-                  DetailRow(
-                      label: "Appointment ID",
-                      value: currentAppointment.toString(),
-                      labelColor: purpleLight,
-                      valueColor: Colors.white),
-                  const SizedBox(height: 20),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text("Purpose",
-                        style: GoogleFonts.poppins(
-                            color: purpleLight,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 16)),
-                  ),
-                  const SizedBox(height: 6),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(purpose,
-                        style: GoogleFonts.poppins(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 18)),
-                  ),
-                ],
-              ),
+            return _buildServingPanelContentDesktop(
+              context,
+              currentQueue: currentQueue,
+              currentAppointment: currentAppointment,
+              purpose: purpose,
+              customerName: customerName,
+              rawAppointmentDate: appointmentDate,
             );
           },
         );
@@ -573,7 +856,10 @@ class _AdminHomePageState extends State<AdminHomePage> {
   }
 }
 
-// ------------------- WIDGETS -------------------
+// ------------------------------------
+// --- REUSABLE WIDGETS (remain the same) ---
+// ------------------------------------
+
 class SidebarItem extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -641,7 +927,9 @@ class _FilterDropdownState extends State<FilterDropdown> {
             child: Text(
               "Filter",
               style: GoogleFonts.poppins(
-                  color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12),
             ),
           ),
           onChanged: (String? newValue) {
@@ -666,6 +954,7 @@ class QueueCard extends StatelessWidget {
   final String purpose;
   final Color purpleMid;
   final String userId;
+  final QueueCardTapCallback? onTap;
 
   const QueueCard({
     super.key,
@@ -675,6 +964,7 @@ class QueueCard extends StatelessWidget {
     required this.purpose,
     required this.purpleMid,
     required this.userId,
+    this.onTap,
   });
 
   @override
@@ -685,7 +975,10 @@ class QueueCard extends StatelessWidget {
         "${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}";
 
     return FutureBuilder<DocumentSnapshot>(
-      future: FirebaseFirestore.instance.collection('users').doc(userId).get(),
+      // Fetches customer name using userId
+      future: userId.isNotEmpty
+          ? FirebaseFirestore.instance.collection('users').doc(userId).get()
+          : Future.value(null),
       builder: (context, snapshot) {
         String customerName = "-";
         if (snapshot.hasData && snapshot.data!.exists) {
@@ -696,23 +989,37 @@ class QueueCard extends StatelessWidget {
           customerName = "$fname${mid.isNotEmpty ? ' $mid' : ''} $lname".trim();
         }
 
-        return Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: purpleMid.withOpacity(0.15),
-            border: Border.all(color: purpleMid),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              InfoRow(label: "Queue Number:", value: queuenum?.toString() ?? "-"),
-              InfoRow(label: "Customer Name:", value: customerName),
-              InfoRow(label: "Appointment ID:", value: appointmentnum),
-              InfoRow(label: "Date:", value: formattedDate),
-              InfoRow(label: "Time:", value: formattedTime),
-              InfoRow(label: "Purpose:", value: purpose),
-            ],
+        return InkWell(
+          onTap: () {
+            if (onTap != null && queuenum != null) {
+              onTap!(
+                userId: userId,
+                appointmentNum: appointmentnum,
+                purpose: purpose,
+                queueNum: queuenum!,
+                appointmentDate: appointmentdate,
+              );
+            }
+          },
+          child: Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: purpleMid.withOpacity(0.15),
+              border: Border.all(color: purpleMid),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                InfoRow(
+                    label: "Queue Number:", value: queuenum?.toString() ?? "-"),
+                InfoRow(label: "Customer Name:", value: customerName),
+                InfoRow(label: "Appointment ID:", value: appointmentnum),
+                InfoRow(label: "Date:", value: formattedDate),
+                InfoRow(label: "Time:", value: formattedTime),
+                InfoRow(label: "Purpose:", value: purpose),
+              ],
+            ),
           ),
         );
       },
@@ -734,7 +1041,9 @@ class InfoRow extends StatelessWidget {
         text: TextSpan(
           style: GoogleFonts.poppins(fontSize: 12, color: Colors.black),
           children: [
-            TextSpan(text: label, style: const TextStyle(fontWeight: FontWeight.bold)),
+            TextSpan(
+                text: label,
+                style: const TextStyle(fontWeight: FontWeight.bold)),
             TextSpan(text: " $value"),
           ],
         ),

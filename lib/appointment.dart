@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import 'set_appointment.dart';
 import 'appointment_delete.dart';
-import 'appointment_edit.dart'; // <-- Make sure this file exists
+import 'appointment_edit.dart';
+import 'set_appointment.dart';
+import 'appointment_view.dart'; // <- Import modal
 
 class AppointmentPage extends StatelessWidget {
   const AppointmentPage({super.key});
@@ -54,13 +55,8 @@ class AppointmentPage extends StatelessWidget {
             children: [
               _header(),
               const SizedBox(height: 20),
-
-              // Set appointment
               _setAppointmentButton(context),
-
               const SizedBox(height: 30),
-
-              // Scheduled Appointments
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Column(
@@ -78,10 +74,7 @@ class AppointmentPage extends StatelessWidget {
                   ],
                 ),
               ),
-
               const SizedBox(height: 30),
-
-              // History
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Column(
@@ -114,7 +107,6 @@ class AppointmentPage extends StatelessWidget {
                   ],
                 ),
               ),
-
               const SizedBox(height: 30),
             ],
           ),
@@ -123,16 +115,13 @@ class AppointmentPage extends StatelessWidget {
     );
   }
 
-  // HEADER WIDGET
+  // ---------------- HEADER ----------------
   Widget _header() {
     return Container(
       width: double.infinity,
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: [
-            Color.fromARGB(162, 234, 189, 230),
-            Color(0xFFD69ADE),
-          ],
+          colors: [Color.fromARGB(162, 234, 189, 230), Color(0xFFD69ADE)],
         ),
         borderRadius: BorderRadius.only(
           bottomLeft: Radius.circular(20),
@@ -156,7 +145,7 @@ class AppointmentPage extends StatelessWidget {
     );
   }
 
-  // SET APPOINTMENT BUTTON
+  // ---------------- SET APPOINTMENT BUTTON ----------------
   Widget _setAppointmentButton(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -182,7 +171,7 @@ class AppointmentPage extends StatelessWidget {
             style: GoogleFonts.poppins(
               fontSize: 16,
               fontWeight: FontWeight.w600,
-              color: Color(0xFFD69ADE),
+              color: const Color(0xFFD69ADE),
             ),
           ),
         ),
@@ -190,7 +179,7 @@ class AppointmentPage extends StatelessWidget {
     );
   }
 
-  // SCHEDULED APPOINTMENTS STREAM
+  // ---------------- SCHEDULED APPOINTMENTS ----------------
   Widget _scheduledAppointments(String uid, BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
@@ -202,23 +191,22 @@ class AppointmentPage extends StatelessWidget {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
-
         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
           return const Padding(
             padding: EdgeInsets.symmetric(vertical: 20),
             child: Center(
-              child: Text("No upcoming appointments",
-                  style: TextStyle(fontSize: 14, color: Colors.grey)),
+              child: Text(
+                "No upcoming appointments",
+                style: TextStyle(fontSize: 14, color: Colors.grey),
+              ),
             ),
           );
         }
 
         final docs = snapshot.data!.docs;
-
         return Column(
           children: docs.map((doc) {
             final data = doc.data() as Map<String, dynamic>;
-
             return _upcomingCard(
               context: context,
               title: data['purpose'] ?? '',
@@ -234,7 +222,7 @@ class AppointmentPage extends StatelessWidget {
     );
   }
 
-  // HISTORY STREAM
+  // ---------------- HISTORY APPOINTMENTS ----------------
   Widget _historyAppointments(String uid) {
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
@@ -246,19 +234,19 @@ class AppointmentPage extends StatelessWidget {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
-
         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
           return const Padding(
             padding: EdgeInsets.symmetric(vertical: 20),
             child: Center(
-              child: Text("No past appointments",
-                  style: TextStyle(fontSize: 14, color: Colors.grey)),
+              child: Text(
+                "No past appointments",
+                style: TextStyle(fontSize: 14, color: Colors.grey),
+              ),
             ),
           );
         }
 
         final docs = snapshot.data!.docs;
-
         return Column(
           children: docs.map((doc) {
             final data = doc.data() as Map<String, dynamic>;
@@ -272,7 +260,7 @@ class AppointmentPage extends StatelessWidget {
     );
   }
 
-  // UPCOMING CARD
+  // ---------------- UPCOMING CARD ----------------
   Widget _upcomingCard({
     required BuildContext context,
     required String title,
@@ -299,7 +287,6 @@ class AppointmentPage extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // LEFT DETAILS
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -323,10 +310,7 @@ class AppointmentPage extends StatelessWidget {
                     Text(code, style: GoogleFonts.poppins(fontSize: 14)),
                   ],
                 ),
-
                 const SizedBox(height: 12),
-
-                // BUTTONS HERE
                 Row(
                   children: [
                     OutlinedButton.icon(
@@ -334,36 +318,39 @@ class AppointmentPage extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => AppointmentEditPage(
-                              docId: docId,
-                              data: data,
-                            ),
+                            builder: (_) =>
+                                AppointmentEditPage(docId: docId, data: data),
                           ),
                         );
                       },
-                      icon: const Icon(Icons.edit, size: 18),
-                      label: const Text("Edit"),
+                      icon: const Icon(Icons.edit, size: 16),
+                      label: const Text("Edit", style: TextStyle(fontSize: 12)),
                     ),
-                    const SizedBox(width: 10),
+                    const SizedBox(width: 8),
                     OutlinedButton.icon(
                       onPressed: () {
                         AppointmentDelete.deleteAppointment(
-                          context: context,
-                          docId: docId,
-                        );
+                            context: context, docId: docId);
                       },
                       icon:
-                          const Icon(Icons.delete, size: 18, color: Colors.red),
+                          const Icon(Icons.delete, size: 16, color: Colors.red),
                       label: const Text("Delete",
-                          style: TextStyle(color: Colors.red)),
+                          style: TextStyle(fontSize: 12, color: Colors.red)),
+                    ),
+                    const SizedBox(width: 8),
+                    OutlinedButton.icon(
+                      onPressed: () {
+                        // Show dialog modal instead of bottom sheet
+                        AppointmentViewModal.show(context, docId);
+                      },
+                      icon: const Icon(Icons.remove_red_eye, size: 16),
+                      label: const Text("View", style: TextStyle(fontSize: 12)),
                     ),
                   ],
-                )
+                ),
               ],
             ),
           ),
-
-          // RIGHT QUEUE NUMBER
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             decoration: BoxDecoration(
@@ -388,7 +375,7 @@ class AppointmentPage extends StatelessWidget {
     );
   }
 
-  // HISTORY ITEM
+  // ---------------- HISTORY ITEM ----------------
   Widget _historyItem({required String title, required String date}) {
     return Column(
       children: [

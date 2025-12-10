@@ -331,8 +331,7 @@ class _RegisterState extends State<Register> {
                                 children: [
                                   TextFormField(
                                     controller: _midController,
-                                    decoration: _thinBorderDecoration(
-                                        'M.I.'),
+                                    decoration: _thinBorderDecoration('M.I.'),
                                     onChanged: (_) => _validateAll(),
                                   ),
                                   _errorText(_midError),

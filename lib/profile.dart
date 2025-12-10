@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'logout.dart'; // import the logout helper
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -44,7 +45,8 @@ class ProfilePage extends StatelessWidget {
                       children: [
                         IconButton(
                           onPressed: () {},
-                          icon: const Icon(Icons.notifications_none, color: Colors.white),
+                          icon: const Icon(Icons.notifications_none,
+                              color: Colors.white),
                         ),
                         IconButton(
                           onPressed: () {},
@@ -76,9 +78,9 @@ class ProfilePage extends StatelessWidget {
                   padding: const EdgeInsets.all(20),
                   child: Row(
                     children: [
-                      CircleAvatar(
+                      const CircleAvatar(
                         radius: 40,
-                        backgroundImage: AssetImage('assets/profile-pic.png'), // placeholder
+                        backgroundImage: AssetImage('assets/profile-pic.png'),
                       ),
                       const SizedBox(width: 20),
                       Expanded(
@@ -97,7 +99,7 @@ class ProfilePage extends StatelessWidget {
                               "denden@gmail.com",
                               style: GoogleFonts.poppins(
                                 fontSize: 14,
-                                color: Colors.grey[600],
+                                color: Colors.grey,
                               ),
                             ),
                             const SizedBox(height: 10),
@@ -142,7 +144,8 @@ class ProfilePage extends StatelessWidget {
               const SizedBox(height: 12),
               _optionCard("Change Password", Icons.lock_outline, () {}),
               _optionCard("Notifications", Icons.notifications, () {}),
-              _optionCard("Linked Accounts", Icons.account_circle_outlined, () {}),
+              _optionCard(
+                  "Linked Accounts", Icons.account_circle_outlined, () {}),
 
               const SizedBox(height: 30),
 
@@ -179,7 +182,12 @@ class ProfilePage extends StatelessWidget {
               const SizedBox(height: 12),
               _optionCard("Help & FAQ", Icons.help_outline, () {}),
               _optionCard("Contact Support", Icons.mail_outline, () {}),
-              _optionCard("Logout", Icons.logout, () {}),
+
+              // Logout using logout.dart
+              _optionCard("Logout", Icons.logout, () {
+                Logout.performLogout(context);
+              }),
+
               const SizedBox(height: 30),
             ],
           ),
