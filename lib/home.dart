@@ -388,7 +388,7 @@ class _HomePageState extends State<HomePage> {
                 Row(
                   children: [
                     // Edit
-                    OutlinedButton.icon(
+                    IconButton(
                       onPressed: () {
                         if (docId != null) {
                           Navigator.push(
@@ -400,58 +400,35 @@ class _HomePageState extends State<HomePage> {
                           );
                         }
                       },
-                      icon: const Icon(Icons.edit, size: 16),
-                      label: Text("Edit",
-                          style: GoogleFonts.poppins(fontSize: 12)),
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Colors.blue, width: 1.5),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 4),
-                        minimumSize: const Size(50, 30),
-                      ),
+                      icon: const Icon(Icons.edit, color: Colors.blue),
+                      tooltip: "Edit",
                     ),
-                    const SizedBox(width: 8),
+
                     // Delete
-                    OutlinedButton.icon(
+                    IconButton(
                       onPressed: () {
                         if (docId != null) {
                           AppointmentDelete.deleteAppointment(
                               context: context, docId: docId);
                         }
                       },
-                      icon:
-                          const Icon(Icons.delete, size: 16, color: Colors.red),
-                      label: Text("Delete",
-                          style: GoogleFonts.poppins(
-                              fontSize: 12, color: Colors.red)),
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Colors.red, width: 1.5),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 4),
-                        minimumSize: const Size(50, 30),
-                      ),
+                      icon: const Icon(Icons.delete, color: Colors.red),
+                      tooltip: "Delete",
                     ),
-                    const SizedBox(width: 8),
-                    // View (Modal)
-                    OutlinedButton.icon(
+
+                    // View
+                    IconButton(
                       onPressed: () {
                         if (docId != null) {
                           showDialog(
                             context: context,
-                            barrierColor:
-                                Colors.black54, // semi-transparent black
+                            barrierColor: Colors.black54,
                             builder: (_) => Center(
                               child: SingleChildScrollView(
                                 child: Dialog(
                                   backgroundColor: Colors.transparent,
-                                  insetPadding: const EdgeInsets.symmetric(
-                                      horizontal: 20, vertical: 40),
+                                  insetPadding:
+                                      const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
                                   child: AppointmentViewModal(docId: docId),
                                 ),
                               ),
@@ -459,22 +436,11 @@ class _HomePageState extends State<HomePage> {
                           );
                         }
                       },
-                      icon: const Icon(Icons.remove_red_eye, size: 16),
-                      label: Text("View",
-                          style: GoogleFonts.poppins(fontSize: 12)),
-                      style: OutlinedButton.styleFrom(
-                        side:
-                            const BorderSide(color: Colors.purple, width: 1.5),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 4),
-                        minimumSize: const Size(50, 30),
-                      ),
+                      icon: const Icon(Icons.remove_red_eye, color: Colors.purple),
+                      tooltip: "View",
                     ),
                   ],
-                ),
+                )
               ],
             ),
           ),
@@ -482,7 +448,7 @@ class _HomePageState extends State<HomePage> {
           // QUEUE NUMBER BOX
           Container(
             margin: const EdgeInsets.only(left: 16),
-            padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
             decoration: BoxDecoration(
               border: Border.all(color: Colors.purple, width: 2),
               borderRadius: BorderRadius.circular(12),

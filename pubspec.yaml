@@ -71,18 +71,7 @@ flutter:
     - assets/facebook.png
     - assets/google.png
     - assets/apple.png
-    - assets/banks/bdo.png
-    - assets/banks/bpi.png
-    - assets/banks/citysavings.png
-    - assets/banks/landbank.png
-    - assets/hospitals/iloilodoctors.png
-    - assets/hospitals/iloilomission.png
-    - assets/hospitals/wvmed.png
-    - assets/hospitals/wvsumed.png
-    - assets/universities/cpu.png
-    - assets/universities/idc.png
-    - assets/universities/usa.png
-    - assets/universities/wvsu.png
+    - assets/bunny-ticket.png
 
   # To add assets to your application, add an assets section, like this:
   # assets:

@@ -311,9 +311,11 @@ class AppointmentPage extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 12),
+
+                // ---------------- ICON BUTTONS ----------------
                 Row(
                   children: [
-                    OutlinedButton.icon(
+                    IconButton(
                       onPressed: () {
                         Navigator.push(
                           context,
@@ -323,50 +325,60 @@ class AppointmentPage extends StatelessWidget {
                           ),
                         );
                       },
-                      icon: const Icon(Icons.edit, size: 16),
-                      label: const Text("Edit", style: TextStyle(fontSize: 12)),
+                      icon: const Icon(Icons.edit, color: Colors.blue),
+                      tooltip: "Edit",
                     ),
-                    const SizedBox(width: 8),
-                    OutlinedButton.icon(
+                    IconButton(
                       onPressed: () {
                         AppointmentDelete.deleteAppointment(
                             context: context, docId: docId);
                       },
-                      icon:
-                          const Icon(Icons.delete, size: 16, color: Colors.red),
-                      label: const Text("Delete",
-                          style: TextStyle(fontSize: 12, color: Colors.red)),
+                      icon: const Icon(Icons.delete, color: Colors.red),
+                      tooltip: "Delete",
                     ),
-                    const SizedBox(width: 8),
-                    OutlinedButton.icon(
+                    IconButton(
                       onPressed: () {
-                        // Show dialog modal instead of bottom sheet
                         AppointmentViewModal.show(context, docId);
                       },
-                      icon: const Icon(Icons.remove_red_eye, size: 16),
-                      label: const Text("View", style: TextStyle(fontSize: 12)),
+                      icon: const Icon(Icons.remove_red_eye, color: Colors.purple),
+                      tooltip: "View",
                     ),
                   ],
                 ),
               ],
             ),
           ),
+
+          // ---------------- QUEUE BOX (LARGER, FITS CARD) ----------------
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            width: 120,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
             decoration: BoxDecoration(
               border: Border.all(color: Colors.purple, width: 2),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text("Queue Number",
+                Text(
+                  "Queue",
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.poppins(
+                    fontSize: 13,
+                    color: Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                FittedBox(
+                  child: Text(
+                    queue,
                     style: GoogleFonts.poppins(
-                        fontSize: 12, color: Colors.black87)),
-                Text(queue,
-                    style: GoogleFonts.poppins(
-                        fontSize: 60,
-                        color: Colors.purple,
-                        fontWeight: FontWeight.bold)),
+                      fontSize: 50,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.purple,
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
