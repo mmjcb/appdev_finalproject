@@ -1,9 +1,52 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'logout.dart'; // import the logout helper
 
-class ProfilePage extends StatelessWidget {
+class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
+
+  @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  String displayName = '';
+  String email = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return;
+
+      email = user.email ?? '';
+
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+
+      if (doc.exists) {
+        final data = doc.data()!;
+        final firstName = data['firstName'] ?? '';
+        final middleName = data['middleName'] ?? '';
+        final lastName = data['lastName'] ?? '';
+        final middleInitial = middleName.isNotEmpty ? '${middleName[0]}.' : '';
+        displayName = '$firstName $middleInitial $lastName';
+      }
+
+      setState(() {});
+    } catch (e) {
+      debugPrint("Error loading user data: $e");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -78,9 +121,11 @@ class ProfilePage extends StatelessWidget {
                   padding: const EdgeInsets.all(20),
                   child: Row(
                     children: [
-                      const CircleAvatar(
+                      CircleAvatar(
                         radius: 40,
-                        backgroundImage: AssetImage('assets/profile-pic.png'),
+                        backgroundImage: NetworkImage(
+                          "https://static.vecteezy.com/system/resources/thumbnails/069/732/806/small/3d-purple-user-avatar-icon-with-rounded-head-and-shoulder-silhouette-isolated-on-transparent-background-free-png.png",
+                        ),
                       ),
                       const SizedBox(width: 20),
                       Expanded(
@@ -88,7 +133,7 @@ class ProfilePage extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              "Den Den",
+                              displayName.isEmpty ? 'User' : displayName,
                               style: GoogleFonts.poppins(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
@@ -96,7 +141,7 @@ class ProfilePage extends StatelessWidget {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              "denden@gmail.com",
+                              email.isEmpty ? 'email@example.com' : email,
                               style: GoogleFonts.poppins(
                                 fontSize: 14,
                                 color: Colors.grey,
@@ -144,8 +189,7 @@ class ProfilePage extends StatelessWidget {
               const SizedBox(height: 12),
               _optionCard("Change Password", Icons.lock_outline, () {}),
               _optionCard("Notifications", Icons.notifications, () {}),
-              _optionCard(
-                  "Linked Accounts", Icons.account_circle_outlined, () {}),
+              _optionCard("Linked Accounts", Icons.account_circle_outlined, () {}),
 
               const SizedBox(height: 30),
 
@@ -182,8 +226,6 @@ class ProfilePage extends StatelessWidget {
               const SizedBox(height: 12),
               _optionCard("Help & FAQ", Icons.help_outline, () {}),
               _optionCard("Contact Support", Icons.mail_outline, () {}),
-
-              // Logout using logout.dart
               _optionCard("Logout", Icons.logout, () {
                 Logout.performLogout(context);
               }),

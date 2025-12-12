@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class AppointmentEditPage extends StatefulWidget {
   final String docId;
@@ -22,6 +23,12 @@ class _AppointmentEditPageState extends State<AppointmentEditPage> {
   int? selectedSlotHour;
   bool isSaving = false;
 
+  // Theme colors
+  static const Color primaryDeepPurple = Color(0xFFD69ADE);
+  static const Color accentPurple = Color(0xFFD6C6D8);
+  static const Color lightGreyBg = Color(0xFFF5F5F5);
+  static const Color darkContrastPurple = Color(0xFF7B1FA2);
+
   final clinicStartHour = 8;
   final clinicEndHour = 17;
   final lunchHour = 12;
@@ -42,18 +49,15 @@ class _AppointmentEditPageState extends State<AppointmentEditPage> {
     if (selectedDate != null) _generateSlotAvailability(selectedDate!);
   }
 
-  // ----------------- GENERATE SLOT AVAILABILITY -----------------
   Future<void> _generateSlotAvailability(DateTime date) async {
     slotAvailability.clear();
 
     for (int hour = clinicStartHour; hour <= clinicEndHour; hour++) {
       if (hour == lunchHour) {
-        slotAvailability[hour] = false; // lunch break
+        slotAvailability[hour] = false;
         continue;
       }
-
       final count = await _appointmentsCountInHour(date, hour);
-      // Allow current appointment slot even if full
       final isCurrentSlot = selectedSlotHour == hour &&
           date.year == selectedDate!.year &&
           date.month == selectedDate!.month &&
@@ -64,7 +68,6 @@ class _AppointmentEditPageState extends State<AppointmentEditPage> {
     setState(() {});
   }
 
-  // ----------------- COUNT APPOINTMENTS IN HOUR -----------------
   Future<int> _appointmentsCountInHour(DateTime date, int hour) async {
     final startHour = DateTime(date.year, date.month, date.day, hour, 0, 0);
     final endHour = DateTime(date.year, date.month, date.day, hour, 59, 59);
@@ -77,13 +80,11 @@ class _AppointmentEditPageState extends State<AppointmentEditPage> {
             isLessThanOrEqualTo: Timestamp.fromDate(endHour))
         .get();
 
-    // Exclude the current appointment being edited
     final filtered = snapshot.docs.where((doc) => doc.id != widget.docId);
 
     return filtered.length;
   }
 
-  // ----------------- PICK DATE -----------------
   Future<void> _pickDate() async {
     final date = await showDatePicker(
       context: context,
@@ -91,38 +92,50 @@ class _AppointmentEditPageState extends State<AppointmentEditPage> {
       firstDate: DateTime.now(),
       lastDate: DateTime(2040),
       selectableDayPredicate: (day) => day.weekday >= 1 && day.weekday <= 5,
+      builder: (context, child) => Theme(
+        data: ThemeData.light().copyWith(
+          colorScheme: const ColorScheme.light(
+            primary: primaryDeepPurple,
+            onPrimary: Colors.white,
+            onSurface: Colors.black87,
+          ),
+          textButtonTheme: TextButtonThemeData(
+            style: TextButton.styleFrom(foregroundColor: primaryDeepPurple),
+          ),
+        ),
+        child: child!,
+      ),
     );
 
     if (date == null) return;
 
-    selectedDate = date;
-    selectedSlotHour = null;
+    setState(() {
+      selectedDate = date;
+      selectedSlotHour = null;
+    });
+
     await _generateSlotAvailability(date);
   }
 
-  // ----------------- FORMAT HOUR TO AM/PM -----------------
   String formatHourAMPM(int hour) {
     final dt = DateTime(0, 0, 0, hour);
-    final formatter = DateFormat.j(); // 12-hour with AM/PM
-    return formatter.format(dt);
+    return DateFormat('h a').format(dt);
   }
 
-  // ----------------- SAVE CHANGES -----------------
   Future<void> _saveChanges() async {
     if (selectedDate == null ||
         selectedSlotHour == null ||
         _purposeController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please complete all fields.")),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text("Please complete all fields.")));
       return;
     }
 
     setState(() => isSaving = true);
 
     try {
-      final appointmentDate = DateTime(selectedDate!.year, selectedDate!.month,
-          selectedDate!.day, selectedSlotHour!, 0);
+      final appointmentDate = DateTime(
+          selectedDate!.year, selectedDate!.month, selectedDate!.day, selectedSlotHour!);
 
       await FirebaseFirestore.instance
           .collection("appointments")
@@ -135,12 +148,14 @@ class _AppointmentEditPageState extends State<AppointmentEditPage> {
       if (mounted) Navigator.pop(context);
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Appointment updated successfully!")),
+        const SnackBar(
+          content: Text("Appointment updated successfully!"),
+          backgroundColor: primaryDeepPurple,
+        ),
       );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: $e")),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text("Error: $e")));
     }
 
     setState(() => isSaving = false);
@@ -149,82 +164,171 @@ class _AppointmentEditPageState extends State<AppointmentEditPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Edit Appointment")),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
+      appBar: AppBar(
+        title: Text(
+          "Edit Appointment",
+          style: GoogleFonts.poppins(
+              fontWeight: FontWeight.bold, color: Colors.white),
+        ),
+        backgroundColor: primaryDeepPurple,
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            TextField(
-              controller: _purposeController,
-              decoration: const InputDecoration(
-                labelText: "Purpose of Appointment",
-              ),
-            ),
-            const SizedBox(height: 20),
-            Row(
-              children: [
-                Expanded(
-                  child: Text(selectedDate == null
-                      ? "No date selected"
-                      : "${selectedDate!.month}/${selectedDate!.day}/${selectedDate!.year}"),
-                ),
-                ElevatedButton(
-                  onPressed: _pickDate,
-                  child: const Text("Pick Date"),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            if (selectedDate != null)
-              Wrap(
-                spacing: 10,
-                runSpacing: 10,
-                children: slotAvailability.entries.map((entry) {
-                  final hour = entry.key;
-                  final available = entry.value;
-                  final isSelected = selectedSlotHour == hour;
-
-                  // Display as "8:00 AM - 8:59 AM"
-                  final slotText =
-                      "${formatHourAMPM(hour)} - ${formatHourAMPM(hour).replaceAll(RegExp(r'AM|PM'), '')}${hour < 12 ? ' AM' : ' PM'}";
-
-                  return ChoiceChip(
-                    label: Text(slotText),
-                    selected: isSelected,
-                    onSelected: available
-                        ? (_) {
-                            setState(() {
-                              selectedSlotHour = hour;
-                            });
-                          }
-                        : null,
-                    selectedColor: Colors.purple[200],
-                    backgroundColor:
-                        available ? Colors.grey[200] : Colors.grey[400],
-                  );
-                }).toList(),
-              ),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: (selectedSlotHour == null || isSaving)
-                    ? null
-                    : _saveChanges,
-                child: isSaving
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2,
-                        ),
-                      )
-                    : const Text("Save Changes"),
-              ),
-            ),
+            _buildSectionLabel("Purpose of Visit"),
+            const SizedBox(height: 10),
+            _buildPurposeInput(),
+            const SizedBox(height: 30),
+            _buildSectionLabel("Select Date"),
+            const SizedBox(height: 15),
+            _buildDatePicker(),
+            if (selectedDate != null) ...[
+              const SizedBox(height: 30),
+              _buildSectionLabel("Available Time Slots"),
+              const SizedBox(height: 15),
+              _buildTimeSlots(),
+            ],
+            const SizedBox(height: 40),
+            _buildSubmitButton(),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildSectionLabel(String text) {
+    return Text(
+      text,
+      style: GoogleFonts.poppins(
+          fontSize: 18, fontWeight: FontWeight.bold, color: darkContrastPurple),
+    );
+  }
+
+  Widget _buildPurposeInput() {
+    return TextFormField(
+      controller: _purposeController,
+      maxLines: 2,
+      decoration: InputDecoration(
+        hintText: "e.g., Annual Checkup, Consultation...",
+        hintStyle: GoogleFonts.poppins(color: Colors.grey[400]),
+        border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: accentPurple)),
+        focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: primaryDeepPurple, width: 2)),
+        filled: true,
+        fillColor: lightGreyBg,
+      ),
+    );
+  }
+
+  Widget _buildDatePicker() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: lightGreyBg,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: accentPurple),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Text(
+              selectedDate == null
+                  ? "Tap 'Select' to choose a date (Mon-Fri)"
+                  : DateFormat('EEEE, MMM d, yyyy').format(selectedDate!),
+              style: GoogleFonts.poppins(
+                fontSize: 15,
+                color: selectedDate == null ? Colors.grey[600] : darkContrastPurple,
+                fontWeight:
+                    selectedDate == null ? FontWeight.normal : FontWeight.w600,
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          ElevatedButton.icon(
+            onPressed: _pickDate,
+            icon: const Icon(Icons.calendar_month, size: 20),
+            label: const Text("Select"),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: primaryDeepPurple,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTimeSlots() {
+    const slotWidth = 170.0;
+
+    return Wrap(
+      spacing: 12,
+      runSpacing: 12,
+      children: slotAvailability.entries.map((entry) {
+        final hour = entry.key;
+        final isAvailable = entry.value;
+        final isSelected = selectedSlotHour == hour;
+        final slotText = (hour == lunchHour)
+            ? "Lunch Break"
+            : "${formatHourAMPM(hour)} - ${formatHourAMPM(hour + 1)}";
+
+        return SizedBox(
+          width: slotWidth,
+          child: ChoiceChip(
+            label: Text(
+              slotText,
+              textAlign: TextAlign.center,
+              style: GoogleFonts.poppins(
+                fontWeight: FontWeight.w600,
+                color: isAvailable
+                    ? (isSelected ? Colors.white : darkContrastPurple)
+                    : Colors.black38,
+              ),
+            ),
+            selected: isSelected,
+            onSelected: isAvailable && hour != lunchHour
+                ? (_) => setState(() => selectedSlotHour = hour)
+                : null,
+            selectedColor: primaryDeepPurple,
+            backgroundColor: accentPurple.withOpacity(0.4),
+            disabledColor: lightGreyBg.withOpacity(0.6),
+            side: BorderSide(
+                color: isSelected ? darkContrastPurple : accentPurple, width: 1.5),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildSubmitButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: isSaving ? null : _saveChanges,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: primaryDeepPurple,
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          textStyle: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        child: isSaving
+            ? const SizedBox(
+                height: 20,
+                width: 20,
+                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+              )
+            : const Text("Save Changes"),
       ),
     );
   }
