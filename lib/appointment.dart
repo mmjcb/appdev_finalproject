@@ -437,45 +437,56 @@ class AppointmentPage extends StatelessWidget {
     required String date,
     required String status,
   }) {
-    Color badgeColor = status == 'completed' ? Colors.green : Colors.red;
+    Color badgeColor =
+        status == 'completed' ? Colors.green : Colors.red;
 
     return Column(
       children: [
         Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Icon(Icons.history, color: Colors.purple),
             const SizedBox(width: 8),
+
+            // LEFT SIDE (Title + Date)
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title,
-                      style: GoogleFonts.poppins(
-                          fontWeight: FontWeight.w500, fontSize: 15)),
-                  Row(
-                    children: [
-                      Text(date,
-                          style: GoogleFonts.poppins(
-                              fontSize: 13, color: Colors.grey)),
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: badgeColor,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          status.toUpperCase(),
-                          style: GoogleFonts.poppins(
-                              fontSize: 11,
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ],
+                  Text(
+                    title,
+                    style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.w500,
+                      fontSize: 15,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    date,
+                    style: GoogleFonts.poppins(
+                      fontSize: 13,
+                      color: Colors.grey,
+                    ),
                   ),
                 ],
+              ),
+            ),
+
+            // RIGHT SIDE (Status Badge)
+            Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: badgeColor,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                status.toUpperCase(),
+                style: GoogleFonts.poppins(
+                  fontSize: 11,
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ],
