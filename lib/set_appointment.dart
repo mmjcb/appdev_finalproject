@@ -32,17 +32,35 @@ class _SetAppointmentPageState extends State<SetAppointmentPage> {
   Map<int, bool> slotAvailability = {};
 
   @override
-  void initState() {
-    super.initState();
+  void dispose() {
+    _purposeController.dispose();
+    super.dispose();
   }
 
+  // ------------------ PICK DATE ------------------
   Future<void> _pickDate() async {
+    DateTime initialDate = DateTime.now();
+    // Skip to next valid clinic day if today is not M/W/F/Sat
+    while (![
+      DateTime.monday,
+      DateTime.wednesday,
+      DateTime.friday,
+      DateTime.saturday
+    ].contains(initialDate.weekday)) {
+      initialDate = initialDate.add(const Duration(days: 1));
+    }
+
     final date = await showDatePicker(
       context: context,
-      initialDate: DateTime.now(),
+      initialDate: initialDate,
       firstDate: DateTime.now(),
       lastDate: DateTime(2040),
-      selectableDayPredicate: (day) => day.weekday >= 1 && day.weekday <= 5,
+      selectableDayPredicate: (day) => [
+        DateTime.monday,
+        DateTime.wednesday,
+        DateTime.friday,
+        DateTime.saturday
+      ].contains(day.weekday),
       builder: (context, child) => Theme(
         data: ThemeData.light().copyWith(
           colorScheme: const ColorScheme.light(
@@ -60,6 +78,7 @@ class _SetAppointmentPageState extends State<SetAppointmentPage> {
 
     if (date == null) return;
 
+    if (!mounted) return;
     setState(() {
       selectedDate = date;
       selectedSlotHour = null;
@@ -68,16 +87,31 @@ class _SetAppointmentPageState extends State<SetAppointmentPage> {
     await _generateSlotAvailability(date);
   }
 
+  // ------------------ GENERATE TIME SLOTS ------------------
   Future<void> _generateSlotAvailability(DateTime date) async {
     slotAvailability.clear();
+    final now = DateTime.now();
+
     for (int hour = clinicStartHour; hour <= clinicEndHour; hour++) {
       if (hour == lunchStartHour) {
         slotAvailability[hour] = false;
         continue;
       }
+
+      // Disable past hours if selecting today
+      if (date.year == now.year &&
+          date.month == now.month &&
+          date.day == now.day &&
+          hour <= now.hour) {
+        slotAvailability[hour] = false;
+        continue;
+      }
+
       final count = await _appointmentsCountInHour(date, hour);
       slotAvailability[hour] = count < maxAppointmentsPerSlot;
     }
+
+    if (!mounted) return;
     setState(() {});
   }
 
@@ -99,37 +133,49 @@ class _SetAppointmentPageState extends State<SetAppointmentPage> {
     return DateFormat('h a').format(dt);
   }
 
+  // ------------------ SAVE APPOINTMENT ------------------
   Future<void> _saveAppointment() async {
     if (selectedDate == null ||
         selectedSlotHour == null ||
         _purposeController.text.isEmpty) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text("Please complete all fields.")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please complete all fields.")),
+      );
       return;
     }
 
+    if (!mounted) return;
     setState(() => isSaving = true);
 
     try {
       final userId = FirebaseAuth.instance.currentUser!.uid;
 
-      // Generate Appointment Number
-      final snap = await FirebaseFirestore.instance.collection('appointments').get();
+      // Generate Appointment Number globally
+      final snap =
+          await FirebaseFirestore.instance.collection('appointments').get();
       final count = snap.docs.length + 1;
       final appointmentNum = "SQ${count.toString().padLeft(3, '0')}";
 
-      // Generate Queue Number
-      final lastQueueSnap = await FirebaseFirestore.instance
-          .collection('appointments')
-          .orderBy('queuenum', descending: true)
-          .limit(1)
-          .get();
-      final lastQueueNum =
-          lastQueueSnap.docs.isEmpty ? 0 : lastQueueSnap.docs.first['queuenum'] ?? 0;
-      final newQueueNum = lastQueueNum + 1;
-
+      // Appointment slot datetime
       final appointmentDate = DateTime(
-          selectedDate!.year, selectedDate!.month, selectedDate!.day, selectedSlotHour!);
+        selectedDate!.year,
+        selectedDate!.month,
+        selectedDate!.day,
+        selectedSlotHour!,
+      );
+
+      final slotStart = Timestamp.fromDate(appointmentDate);
+      final slotEnd = Timestamp.fromDate(
+          appointmentDate.add(const Duration(hours: 1, seconds: -1)));
+
+      // Queue number per slot
+      final slotSnap = await FirebaseFirestore.instance
+          .collection('appointments')
+          .where('appointmentdate', isGreaterThanOrEqualTo: slotStart)
+          .where('appointmentdate', isLessThanOrEqualTo: slotEnd)
+          .get();
+
+      final newQueueNum = slotSnap.docs.length + 1;
 
       await FirebaseFirestore.instance.collection('appointments').add({
         "appointmentnum": appointmentNum,
@@ -141,23 +187,26 @@ class _SetAppointmentPageState extends State<SetAppointmentPage> {
         "queuenum": newQueueNum,
       });
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Appointment set successfully!"),
-            backgroundColor: primaryDeepPurple,
-          ),
-        );
-        Navigator.pop(context);
-      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Appointment set successfully!"),
+          backgroundColor: primaryDeepPurple,
+        ),
+      );
+      Navigator.pop(context);
     } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text("Error: $e")));
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text("Error: $e")));
+      }
     }
 
+    if (!mounted) return;
     setState(() => isSaving = false);
   }
 
+  // ------------------ BUILD UI ------------------
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -165,7 +214,9 @@ class _SetAppointmentPageState extends State<SetAppointmentPage> {
         title: Text(
           "Set Appointment",
           style: GoogleFonts.poppins(
-              fontWeight: FontWeight.bold, color: Colors.white),
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
         ),
         backgroundColor: primaryDeepPurple,
         iconTheme: const IconThemeData(color: Colors.white),
@@ -200,7 +251,10 @@ class _SetAppointmentPageState extends State<SetAppointmentPage> {
     return Text(
       text,
       style: GoogleFonts.poppins(
-          fontSize: 18, fontWeight: FontWeight.bold, color: darkContrastPurple),
+        fontSize: 18,
+        fontWeight: FontWeight.bold,
+        color: darkContrastPurple,
+      ),
     );
   }
 
@@ -212,11 +266,13 @@ class _SetAppointmentPageState extends State<SetAppointmentPage> {
         hintText: "e.g., Annual Checkup, Consultation...",
         hintStyle: GoogleFonts.poppins(color: Colors.grey[400]),
         border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: accentPurple)),
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: accentPurple),
+        ),
         focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: primaryDeepPurple, width: 2)),
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: primaryDeepPurple, width: 2),
+        ),
         filled: true,
         fillColor: lightGreyBg,
       ),
@@ -237,11 +293,13 @@ class _SetAppointmentPageState extends State<SetAppointmentPage> {
           Expanded(
             child: Text(
               selectedDate == null
-                  ? "Tap 'Select' to choose a date (Mon-Fri)"
+                  ? "Tap 'Select' to choose a date (Mon, Wed, Fri, Sat)"
                   : DateFormat('EEEE, MMM d, yyyy').format(selectedDate!),
               style: GoogleFonts.poppins(
                 fontSize: 15,
-                color: selectedDate == null ? Colors.grey[600] : darkContrastPurple,
+                color: selectedDate == null
+                    ? Colors.grey[600]
+                    : darkContrastPurple,
                 fontWeight:
                     selectedDate == null ? FontWeight.normal : FontWeight.w600,
               ),
@@ -255,7 +313,8 @@ class _SetAppointmentPageState extends State<SetAppointmentPage> {
             style: ElevatedButton.styleFrom(
               backgroundColor: primaryDeepPurple,
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8)),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             ),
           ),
@@ -265,7 +324,7 @@ class _SetAppointmentPageState extends State<SetAppointmentPage> {
   }
 
   Widget _buildTimeSlots() {
-    const slotWidth = 170.0; // fixed width for each time slot
+    const slotWidth = 170.0;
 
     return Wrap(
       spacing: 12,
@@ -300,8 +359,10 @@ class _SetAppointmentPageState extends State<SetAppointmentPage> {
             backgroundColor: accentPurple.withOpacity(0.4),
             disabledColor: lightGreyBg.withOpacity(0.6),
             side: BorderSide(
-                color: isSelected ? darkContrastPurple : accentPurple, width: 1.5),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                color: isSelected ? darkContrastPurple : accentPurple,
+                width: 1.5),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           ),
         );
       }).toList(),
@@ -317,14 +378,17 @@ class _SetAppointmentPageState extends State<SetAppointmentPage> {
           backgroundColor: primaryDeepPurple,
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          textStyle: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          textStyle:
+              GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         child: isSaving
             ? const SizedBox(
                 height: 20,
                 width: 20,
-                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                child: CircularProgressIndicator(
+                    color: Colors.white, strokeWidth: 2),
               )
             : const Text("Submit"),
       ),

@@ -3,10 +3,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import 'appointment_delete.dart';
 import 'appointment_edit.dart';
 import 'set_appointment.dart';
-import 'appointment_view.dart'; // <- Import modal
+import 'appointment_view.dart';
 
 class AppointmentPage extends StatelessWidget {
   const AppointmentPage({super.key});
@@ -103,7 +102,7 @@ class AppointmentPage extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 12),
-                    _historyAppointments(user.uid),
+                    _historyAppointments(user.uid, context),
                   ],
                 ),
               ),
@@ -154,8 +153,7 @@ class AppointmentPage extends StatelessWidget {
         height: 50,
         child: OutlinedButton.icon(
           onPressed: () {
-            Navigator.push(
-              context,
+            Navigator.of(context, rootNavigator: false).push(
               MaterialPageRoute(builder: (_) => const SetAppointmentPage()),
             );
           },
@@ -185,7 +183,6 @@ class AppointmentPage extends StatelessWidget {
       stream: FirebaseFirestore.instance
           .collection('appointments')
           .where('userId', isEqualTo: uid)
-          .where('status', isEqualTo: 'scheduled')
           .snapshots(),
       builder: (contextStream, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -204,15 +201,23 @@ class AppointmentPage extends StatelessWidget {
         }
 
         final docs = snapshot.data!.docs;
+
+        // Sort by queuenum ascending
+        docs.sort((a, b) {
+          final qA = (a['queuenum'] ?? 999) as int;
+          final qB = (b['queuenum'] ?? 999) as int;
+          return qA.compareTo(qB);
+        });
+
         return Column(
           children: docs.map((doc) {
             final data = doc.data() as Map<String, dynamic>;
-            return _upcomingCard(
+            return _appointmentCard(
               context: context,
               title: data['purpose'] ?? '',
-              time: formatDateTime(data['appointmentdate']),
+              date: formatDateTime(data['appointmentdate']),
               code: data['appointmentnum'] ?? '',
-              queue: "${data['queuenum']}",
+              queue: "${data['queuenum'] ?? "-"}",
               docId: doc.id,
               data: data,
             );
@@ -223,12 +228,11 @@ class AppointmentPage extends StatelessWidget {
   }
 
   // ---------------- HISTORY APPOINTMENTS ----------------
-  Widget _historyAppointments(String uid) {
+  Widget _historyAppointments(String uid, BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
-          .collection('appointments')
+          .collection('archives')
           .where('userId', isEqualTo: uid)
-          .where('status', isEqualTo: 'completed')
           .snapshots(),
       builder: (contextStream, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -247,12 +251,21 @@ class AppointmentPage extends StatelessWidget {
         }
 
         final docs = snapshot.data!.docs;
+
+        // Sort by archivedAt descending
+        docs.sort((a, b) {
+          final tsA = a['archivedAt'] as Timestamp?;
+          final tsB = b['archivedAt'] as Timestamp?;
+          return (tsB ?? Timestamp(0, 0)).compareTo(tsA ?? Timestamp(0, 0));
+        });
+
         return Column(
           children: docs.map((doc) {
             final data = doc.data() as Map<String, dynamic>;
             return _historyItem(
               title: data['purpose'] ?? '',
               date: formatDateTime(data['appointmentdate']),
+              status: data['status'] ?? 'deleted',
             );
           }).toList(),
         );
@@ -260,16 +273,18 @@ class AppointmentPage extends StatelessWidget {
     );
   }
 
-  // ---------------- UPCOMING CARD ----------------
-  Widget _upcomingCard({
+  // ---------------- APPOINTMENT CARD ----------------
+  Widget _appointmentCard({
     required BuildContext context,
     required String title,
-    required String time,
+    required String date,
     required String code,
     required String queue,
     required String docId,
     required Map<String, dynamic> data,
   }) {
+    final user = FirebaseAuth.instance.currentUser;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
@@ -299,7 +314,7 @@ class AppointmentPage extends StatelessWidget {
                   children: [
                     const Icon(Icons.access_time, size: 18),
                     const SizedBox(width: 4),
-                    Text(time, style: GoogleFonts.poppins(fontSize: 14)),
+                    Text(date, style: GoogleFonts.poppins(fontSize: 14)),
                   ],
                 ),
                 const SizedBox(height: 4),
@@ -311,8 +326,6 @@ class AppointmentPage extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 12),
-
-                // ---------------- ICON BUTTONS ----------------
                 Row(
                   children: [
                     IconButton(
@@ -329,27 +342,58 @@ class AppointmentPage extends StatelessWidget {
                       tooltip: "Edit",
                     ),
                     IconButton(
-                      onPressed: () {
-                        AppointmentDelete.deleteAppointment(
-                            context: context, docId: docId);
+                      onPressed: () async {
+                        if (user == null) return;
+                        await FirebaseFirestore.instance
+                            .collection('archives')
+                            .add({
+                          ...data,
+                          'userId': user.uid,
+                          'status': 'deleted',
+                          'archivedAt': Timestamp.now(),
+                        });
+                        await FirebaseFirestore.instance
+                            .collection('appointments')
+                            .doc(docId)
+                            .delete();
                       },
                       icon: const Icon(Icons.delete, color: Colors.red),
-                      tooltip: "Delete",
+                      tooltip: "Archive/Delete",
                     ),
                     IconButton(
                       onPressed: () {
-                        AppointmentViewModal.show(context, docId);
+                        AppointmentViewModal.show(
+                            Navigator.of(context, rootNavigator: false).context,
+                            docId);
                       },
-                      icon: const Icon(Icons.remove_red_eye, color: Colors.purple),
+                      icon: const Icon(Icons.remove_red_eye,
+                          color: Colors.purple),
                       tooltip: "View",
+                    ),
+                    IconButton(
+                      onPressed: () async {
+                        if (user == null) return;
+                        await FirebaseFirestore.instance
+                            .collection('archives')
+                            .add({
+                          ...data,
+                          'userId': user.uid,
+                          'status': 'completed',
+                          'archivedAt': Timestamp.now(),
+                        });
+                        await FirebaseFirestore.instance
+                            .collection('appointments')
+                            .doc(docId)
+                            .delete();
+                      },
+                      icon: const Icon(Icons.check_circle, color: Colors.green),
+                      tooltip: "Complete",
                     ),
                   ],
                 ),
               ],
             ),
           ),
-
-          // ---------------- QUEUE BOX (LARGER, FITS CARD) ----------------
           Container(
             width: 120,
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
@@ -388,12 +432,18 @@ class AppointmentPage extends StatelessWidget {
   }
 
   // ---------------- HISTORY ITEM ----------------
-  Widget _historyItem({required String title, required String date}) {
+  Widget _historyItem({
+    required String title,
+    required String date,
+    required String status,
+  }) {
+    Color badgeColor = status == 'completed' ? Colors.green : Colors.red;
+
     return Column(
       children: [
         Row(
           children: [
-            const Icon(Icons.location_on_outlined, color: Colors.purple),
+            const Icon(Icons.history, color: Colors.purple),
             const SizedBox(width: 8),
             Expanded(
               child: Column(
@@ -402,9 +452,29 @@ class AppointmentPage extends StatelessWidget {
                   Text(title,
                       style: GoogleFonts.poppins(
                           fontWeight: FontWeight.w500, fontSize: 15)),
-                  Text(date,
-                      style: GoogleFonts.poppins(
-                          fontSize: 13, color: Colors.grey)),
+                  Row(
+                    children: [
+                      Text(date,
+                          style: GoogleFonts.poppins(
+                              fontSize: 13, color: Colors.grey)),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: badgeColor,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          status.toUpperCase(),
+                          style: GoogleFonts.poppins(
+                              fontSize: 11,
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),

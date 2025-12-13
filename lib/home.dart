@@ -6,7 +6,7 @@ import 'package:intl/intl.dart';
 import 'set_appointment.dart';
 import 'appointment_delete.dart';
 import 'appointment_edit.dart';
-import 'appointment_view.dart'; // AppointmentViewModal
+import 'appointment_view.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -87,31 +87,6 @@ class _HomePageState extends State<HomePage> {
                     ),
                     const SizedBox(height: 12),
                     _scheduledAppointments(),
-                    const SizedBox(height: 24),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          "Recent Appointments",
-                          style: GoogleFonts.poppins(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        TextButton(
-                          onPressed: () {},
-                          child: Text(
-                            "See More",
-                            style: GoogleFonts.poppins(
-                              color: Colors.purple,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    _recentAppointments(),
                   ],
                 ),
               ),
@@ -237,7 +212,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // ------------------- STREAMS -------------------
+  // ------------------- SCHEDULED APPOINTMENTS -------------------
   Widget _scheduledAppointments() {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return const SizedBox();
@@ -246,6 +221,7 @@ class _HomePageState extends State<HomePage> {
       stream: FirebaseFirestore.instance
           .collection('appointments')
           .where('userId', isEqualTo: user.uid)
+          .where('status', isEqualTo: 'scheduled')
           .snapshots(),
       builder: (context, snapshot) {
         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
@@ -262,7 +238,6 @@ class _HomePageState extends State<HomePage> {
 
         final scheduledDocs = snapshot.data!.docs
             .map((d) => d.data() as Map<String, dynamic>..['docId'] = d.id)
-            .where((data) => data['status'] == 'scheduled')
             .toList();
 
         scheduledDocs.sort((a, b) {
@@ -279,54 +254,6 @@ class _HomePageState extends State<HomePage> {
 
         return Column(
           children: scheduledDocs
-              .map((data) => _appointmentCard(data: data))
-              .toList(),
-        );
-      },
-    );
-  }
-
-  Widget _recentAppointments() {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return const SizedBox();
-
-    return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection('appointments')
-          .where('userId', isEqualTo: user.uid)
-          .snapshots(),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-          return const Padding(
-            padding: EdgeInsets.symmetric(vertical: 20),
-            child: Center(
-              child: Text(
-                "No appointment history yet.",
-                style: TextStyle(fontSize: 14, color: Colors.grey),
-              ),
-            ),
-          );
-        }
-
-        final completedDocs = snapshot.data!.docs
-            .map((d) => d.data() as Map<String, dynamic>..['docId'] = d.id)
-            .where((data) => data['status'] == 'completed')
-            .toList();
-
-        completedDocs.sort((a, b) {
-          final aDate = a['appointmentdate'] is Timestamp
-              ? (a['appointmentdate'] as Timestamp).toDate()
-              : DateTime.tryParse(a['appointmentdate'].toString()) ??
-                  DateTime.now();
-          final bDate = b['appointmentdate'] is Timestamp
-              ? (b['appointmentdate'] as Timestamp).toDate()
-              : DateTime.tryParse(b['appointmentdate'].toString()) ??
-                  DateTime.now();
-          return bDate.compareTo(aDate);
-        });
-
-        return Column(
-          children: completedDocs
               .map((data) => _appointmentCard(data: data))
               .toList(),
         );
@@ -383,43 +310,34 @@ class _HomePageState extends State<HomePage> {
                   ],
                 ),
                 const SizedBox(height: 12),
-
-                // ------------------- BUTTONS -------------------
                 Row(
                   children: [
-                    // Edit
-                    IconButton(
-                      onPressed: () {
-                        if (docId != null) {
+                    if (docId != null)
+                      IconButton(
+                        onPressed: () {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) =>
+                              builder: (_) =>
                                   AppointmentEditPage(docId: docId, data: data),
                             ),
                           );
-                        }
-                      },
-                      icon: const Icon(Icons.edit, color: Colors.blue),
-                      tooltip: "Edit",
-                    ),
-
-                    // Delete
-                    IconButton(
-                      onPressed: () {
-                        if (docId != null) {
+                        },
+                        icon: const Icon(Icons.edit, color: Colors.blue),
+                        tooltip: "Edit",
+                      ),
+                    if (docId != null)
+                      IconButton(
+                        onPressed: () {
                           AppointmentDelete.deleteAppointment(
                               context: context, docId: docId);
-                        }
-                      },
-                      icon: const Icon(Icons.delete, color: Colors.red),
-                      tooltip: "Delete",
-                    ),
-
-                    // View
-                    IconButton(
-                      onPressed: () {
-                        if (docId != null) {
+                        },
+                        icon: const Icon(Icons.delete, color: Colors.red),
+                        tooltip: "Delete",
+                      ),
+                    if (docId != null)
+                      IconButton(
+                        onPressed: () {
                           showDialog(
                             context: context,
                             barrierColor: Colors.black54,
@@ -427,25 +345,23 @@ class _HomePageState extends State<HomePage> {
                               child: SingleChildScrollView(
                                 child: Dialog(
                                   backgroundColor: Colors.transparent,
-                                  insetPadding:
-                                      const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
+                                  insetPadding: const EdgeInsets.symmetric(
+                                      horizontal: 20, vertical: 40),
                                   child: AppointmentViewModal(docId: docId),
                                 ),
                               ),
                             ),
                           );
-                        }
-                      },
-                      icon: const Icon(Icons.remove_red_eye, color: Colors.purple),
-                      tooltip: "View",
-                    ),
+                        },
+                        icon: const Icon(Icons.remove_red_eye,
+                            color: Colors.purple),
+                        tooltip: "View",
+                      ),
                   ],
                 )
               ],
             ),
           ),
-
-          // QUEUE NUMBER BOX
           Container(
             margin: const EdgeInsets.only(left: 16),
             padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),

@@ -23,7 +23,6 @@ class _AppointmentEditPageState extends State<AppointmentEditPage> {
   int? selectedSlotHour;
   bool isSaving = false;
 
-  // Theme colors
   static const Color primaryDeepPurple = Color(0xFFD69ADE);
   static const Color accentPurple = Color(0xFFD6C6D8);
   static const Color lightGreyBg = Color(0xFFF5F5F5);
@@ -34,37 +33,55 @@ class _AppointmentEditPageState extends State<AppointmentEditPage> {
   final lunchHour = 12;
   final maxAppointmentsPerSlot = 3;
 
-  Map<int, bool> slotAvailability = {}; // hour -> available or not
+  Map<int, bool> slotAvailability = {};
 
   @override
   void initState() {
     super.initState();
+
     _purposeController.text = widget.data['purpose'] ?? "";
 
     final ts = widget.data['appointmentdate'] as Timestamp;
     final dt = ts.toDate();
+
     selectedDate = DateTime(dt.year, dt.month, dt.day);
     selectedSlotHour = dt.hour;
 
-    if (selectedDate != null) _generateSlotAvailability(selectedDate!);
+    if (selectedDate != null) {
+      _generateSlotAvailability(selectedDate!);
+    }
+  }
+
+  @override
+  void dispose() {
+    _purposeController.dispose();
+    super.dispose();
   }
 
   Future<void> _generateSlotAvailability(DateTime date) async {
     slotAvailability.clear();
 
     for (int hour = clinicStartHour; hour <= clinicEndHour; hour++) {
+      if (!mounted) return; // safety: async loop
+
       if (hour == lunchHour) {
         slotAvailability[hour] = false;
         continue;
       }
+
       final count = await _appointmentsCountInHour(date, hour);
+
+      if (!mounted) return; // safety: async returned mid-navigation
+
       final isCurrentSlot = selectedSlotHour == hour &&
           date.year == selectedDate!.year &&
           date.month == selectedDate!.month &&
           date.day == selectedDate!.day;
+
       slotAvailability[hour] = count < maxAppointmentsPerSlot || isCurrentSlot;
     }
 
+    if (!mounted) return;
     setState(() {});
   }
 
@@ -80,9 +97,7 @@ class _AppointmentEditPageState extends State<AppointmentEditPage> {
             isLessThanOrEqualTo: Timestamp.fromDate(endHour))
         .get();
 
-    final filtered = snapshot.docs.where((doc) => doc.id != widget.docId);
-
-    return filtered.length;
+    return snapshot.docs.where((doc) => doc.id != widget.docId).length;
   }
 
   Future<void> _pickDate() async {
@@ -99,15 +114,13 @@ class _AppointmentEditPageState extends State<AppointmentEditPage> {
             onPrimary: Colors.white,
             onSurface: Colors.black87,
           ),
-          textButtonTheme: TextButtonThemeData(
-            style: TextButton.styleFrom(foregroundColor: primaryDeepPurple),
-          ),
         ),
         child: child!,
       ),
     );
 
     if (date == null) return;
+    if (!mounted) return;
 
     setState(() {
       selectedDate = date;
@@ -118,7 +131,7 @@ class _AppointmentEditPageState extends State<AppointmentEditPage> {
   }
 
   String formatHourAMPM(int hour) {
-    final dt = DateTime(0, 0, 0, hour);
+    final dt = DateTime(0, 1, 1, hour);
     return DateFormat('h a').format(dt);
   }
 
@@ -126,16 +139,18 @@ class _AppointmentEditPageState extends State<AppointmentEditPage> {
     if (selectedDate == null ||
         selectedSlotHour == null ||
         _purposeController.text.isEmpty) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text("Please complete all fields.")));
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Please complete all fields.")));
       return;
     }
 
+    if (!mounted) return;
     setState(() => isSaving = true);
 
     try {
-      final appointmentDate = DateTime(
-          selectedDate!.year, selectedDate!.month, selectedDate!.day, selectedSlotHour!);
+      final appointmentDate = DateTime(selectedDate!.year, selectedDate!.month,
+          selectedDate!.day, selectedSlotHour!);
 
       await FirebaseFirestore.instance
           .collection("appointments")
@@ -145,19 +160,25 @@ class _AppointmentEditPageState extends State<AppointmentEditPage> {
         "appointmentdate": appointmentDate,
       });
 
-      if (mounted) Navigator.pop(context);
+      if (!context.mounted) return;
+      Navigator.pop(context);
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Appointment updated successfully!"),
-          backgroundColor: primaryDeepPurple,
-        ),
-      );
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Appointment updated successfully!"),
+            backgroundColor: primaryDeepPurple,
+          ),
+        );
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text("Error: $e")));
+      if (context.mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text("Error: $e")));
+      }
     }
 
+    if (!mounted) return;
     setState(() => isSaving = false);
   }
 
@@ -244,7 +265,9 @@ class _AppointmentEditPageState extends State<AppointmentEditPage> {
                   : DateFormat('EEEE, MMM d, yyyy').format(selectedDate!),
               style: GoogleFonts.poppins(
                 fontSize: 15,
-                color: selectedDate == null ? Colors.grey[600] : darkContrastPurple,
+                color: selectedDate == null
+                    ? Colors.grey[600]
+                    : darkContrastPurple,
                 fontWeight:
                     selectedDate == null ? FontWeight.normal : FontWeight.w600,
               ),
@@ -258,7 +281,8 @@ class _AppointmentEditPageState extends State<AppointmentEditPage> {
             style: ElevatedButton.styleFrom(
               backgroundColor: primaryDeepPurple,
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8)),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             ),
           ),
@@ -277,7 +301,8 @@ class _AppointmentEditPageState extends State<AppointmentEditPage> {
         final hour = entry.key;
         final isAvailable = entry.value;
         final isSelected = selectedSlotHour == hour;
-        final slotText = (hour == lunchHour)
+
+        final slotText = hour == lunchHour
             ? "Lunch Break"
             : "${formatHourAMPM(hour)} - ${formatHourAMPM(hour + 1)}";
 
@@ -296,14 +321,19 @@ class _AppointmentEditPageState extends State<AppointmentEditPage> {
             ),
             selected: isSelected,
             onSelected: isAvailable && hour != lunchHour
-                ? (_) => setState(() => selectedSlotHour = hour)
+                ? (_) {
+                    if (!mounted) return;
+                    setState(() => selectedSlotHour = hour);
+                  }
                 : null,
             selectedColor: primaryDeepPurple,
             backgroundColor: accentPurple.withOpacity(0.4),
             disabledColor: lightGreyBg.withOpacity(0.6),
             side: BorderSide(
-                color: isSelected ? darkContrastPurple : accentPurple, width: 1.5),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                color: isSelected ? darkContrastPurple : accentPurple,
+                width: 1.5),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           ),
         );
       }).toList(),
@@ -319,14 +349,17 @@ class _AppointmentEditPageState extends State<AppointmentEditPage> {
           backgroundColor: primaryDeepPurple,
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          textStyle: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          textStyle:
+              GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         child: isSaving
             ? const SizedBox(
                 height: 20,
                 width: 20,
-                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                child: CircularProgressIndicator(
+                    color: Colors.white, strokeWidth: 2),
               )
             : const Text("Save Changes"),
       ),
